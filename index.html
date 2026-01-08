@@ -728,9 +728,7 @@
                         logMsg(`Token verification unreadable; response="${(verifyText || '').slice(0,120)}"`, 'warn');
                     }
                 } catch (error) {
-                    logMsg(`Token validation error: ${error.message}`, 'error');
-                    deleteCookie('ada_login_token');
-                    deleteCookie('ada_current_user');
+                    logMsg(`Token validation error (keeping cookies): ${error.message}`, 'error');
                 }
             } else {
                 logMsg('No auth cookies found');
@@ -815,8 +813,8 @@
                 logMsg('Token received, saving cookies and showing dashboard');
 
                 // Save to cookies
-                setCookie('ada_current_user', username, 7);
-                setCookie('ada_login_token', loginToken, 7);
+                setCookie('ada_current_user', username, 90);
+                setCookie('ada_login_token', loginToken, 90);
 
                 showDashboard();
             } catch (error) {
