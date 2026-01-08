@@ -422,11 +422,56 @@
             cursor: pointer;
             font-size: 12px;
         }
+
+        /* Loading Screen */
+        #loadingScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #2a2a2a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+
+        #loadingScreen.hidden {
+            display: none;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #3a3a3a;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            color: #cccccc;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen">
+        <div class="loader"></div>
+        <div class="loading-text">Loading...</div>
+    </div>
+
     <!-- Login Page -->
-    <div id="loginPage">
+    <div id="loginPage" style="display: none;">
         <canvas id="loginCanvas"></canvas>
         <div class="login-container">
             <h1>LiNAS Dashboard</h1>
@@ -702,6 +747,14 @@
             try { localStorage.removeItem(name); } catch (e) {}
         }
 
+        // Hide loading screen helper
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                loadingScreen.classList.add('hidden');
+            }
+        }
+
         // Check for existing login on page load
         window.addEventListener('DOMContentLoaded', async () => {
             logMsg('Page load: checking auth cookies');
@@ -727,19 +780,28 @@
 
                     if (verifyStatus === 'valid') {
                         logMsg('Token valid, showing dashboard');
+                        hideLoadingScreen();
                         showDashboard();
                     } else if (verifyStatus === 'invalid') {
                         logMsg(`Token invalid; response="${(verifyText || '').slice(0,120)}"`, 'warn');
                         deleteCookie('ada_login_token');
                         deleteCookie('ada_current_user');
+                        hideLoadingScreen();
+                        document.getElementById('loginPage').style.display = 'flex';
                     } else {
                         logMsg(`Token verification unreadable; response="${(verifyText || '').slice(0,120)}"`, 'warn');
+                        hideLoadingScreen();
+                        document.getElementById('loginPage').style.display = 'flex';
                     }
                 } catch (error) {
                     logMsg(`Token validation error (keeping cookies): ${error.message}`, 'error');
+                    hideLoadingScreen();
+                    document.getElementById('loginPage').style.display = 'flex';
                 }
             } else {
                 logMsg('No auth cookies found');
+                hideLoadingScreen();
+                document.getElementById('loginPage').style.display = 'flex';
             }
         });
 
@@ -836,6 +898,7 @@
         });
 
         function showDashboard() {
+            hideLoadingScreen();
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('dashboardPage').style.display = 'block';
             updateStatistics();
