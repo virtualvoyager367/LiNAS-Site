@@ -664,6 +664,14 @@
             return null;
         }
 
+        // Parse iframe text for validity ("valid" / "invalid")
+        function parseIframeValidity(html) {
+            const payload = parseIframeContent(html).toLowerCase();
+            if (payload === 'valid') return 'valid';
+            if (payload === 'invalid') return 'invalid';
+            return null;
+        }
+
         // Cookie management
         function setCookie(name, value, days) {
             const expires = new Date();
@@ -707,15 +715,17 @@
                     });
 
                     const verifyText = await response.text();
-                    const verifyOk = parseIframeBoolean(verifyText);
+                    const verifyStatus = parseIframeValidity(verifyText);
 
-                    if (verifyOk) {
+                    if (verifyStatus === 'valid') {
                         logMsg('Token valid, showing dashboard');
                         showDashboard();
-                    } else {
+                    } else if (verifyStatus === 'invalid') {
                         logMsg(`Token invalid; response="${(verifyText || '').slice(0,120)}"`, 'warn');
                         deleteCookie('ada_login_token');
                         deleteCookie('ada_current_user');
+                    } else {
+                        logMsg(`Token verification unreadable; response="${(verifyText || '').slice(0,120)}"`, 'warn');
                     }
                 } catch (error) {
                     logMsg(`Token validation error: ${error.message}`, 'error');
@@ -1057,4 +1067,3 @@
     </script>
 </body>
 </html>
-
