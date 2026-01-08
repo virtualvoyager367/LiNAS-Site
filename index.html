@@ -677,6 +677,8 @@
             const expires = new Date();
             expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
             document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+            // Fallback to localStorage to survive file:// or restricted cookie contexts
+            try { localStorage.setItem(name, value); } catch (e) {}
         }
 
         function getCookie(name) {
@@ -687,11 +689,17 @@
                 while (c.charAt(0) === ' ') c = c.substring(1, c.length);
                 if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
             }
+            // Fallback to localStorage
+            try {
+                const ls = localStorage.getItem(name);
+                if (ls) return ls;
+            } catch (e) {}
             return null;
         }
 
         function deleteCookie(name) {
             document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+            try { localStorage.removeItem(name); } catch (e) {}
         }
 
         // Check for existing login on page load
