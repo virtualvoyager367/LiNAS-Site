@@ -927,93 +927,123 @@
             });
         });
 
-        // File storage using IndexedDB
-        let db = null;
-        const DB_NAME = 'linas_files';
-        const DB_VERSION = 1;
-        const STORE_NAME = 'files';
-
-        // Initialize IndexedDB
-        function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => {
-                    db = request.result;
-                    resolve(db);
-                };
-                
-                request.onupgradeneeded = (event) => {
-                    db = event.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-                    }
-                };
-            });
-        }
-
-        // Get all files
+        // Function to get all files (now a stub, as files are managed by the server)
         async function getAllFiles() {
-            if (!db) await initDB();
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([STORE_NAME], 'readonly');
-                const store = transaction.objectStore(STORE_NAME);
-                const request = store.getAll();
-                
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => resolve(request.result || []);
-            });
-        }
-
-        // Add file to IndexedDB
-        async function addFile(file) {
-            if (!db) await initDB();
-            return new Promise((resolve, reject) => {
-                const fileData = {
-                    id: Date.now() + Math.random(),
-                    name: file.name,
-                    size: file.size,
-                    type: file.type,
-                    uploadDate: new Date().toISOString()
-                };
-
-                const transaction = db.transaction([STORE_NAME], 'readwrite');
-                const store = transaction.objectStore(STORE_NAME);
-                
-                // Store file as Blob
-                const fileRequest = store.add({ ...fileData, blob: file });
-                
-                fileRequest.onsuccess = () => resolve(fileData);
-                fileRequest.onerror = () => reject(fileRequest.error);
-            });
-        }
-
-        // Get file blob by ID
-        async function getFileBlob(fileId) {
-            if (!db) await initDB();
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([STORE_NAME], 'readonly');
-                const store = transaction.objectStore(STORE_NAME);
-                const request = store.get(fileId);
-                
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => {
-                    const result = request.result;
-                    resolve(result ? result.blob : null);
-                };
-            });
+            // In a real implementation, you would fetch the file list from your server
+            // For now, return an empty array
+            return [];
         }
 
         // File upload handler
         document.getElementById('fileInput').addEventListener('change', async (e) => {
             const fileList = e.target.files;
-            for (let i = 0; i < fileList.length; i++) {
-                await addFile(fileList[i]);
+            const uploadArea = document.querySelector('.upload-area');
+            const originalHTML = uploadArea.innerHTML;
+            
+            try {
+                for (let i = 0; i < fileList.length; i++) {
+                    const file = fileList[i];
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    // Get current user and token from cookies
+                    const currentUser = getCookie('ada_current_user');
+                    const loginToken = getCookie('ada_login_token');
+                    
+                    formData.append('user', currentUser);
+                    formData.append('token', loginToken);
+                    
+                    // Show upload progress
+                    uploadArea.innerHTML = `
+                        <div style="text-align: center; padding: 20px;">
+                            <div>Uploading ${file.name}...</div>
+                            <progress value="0" max="100" style="width: 100%; margin: 10px 0;"></progress>
+                            <div class="upload-status">Starting upload...</div>
+                        </div>
+                    `;
+                    
+                    const progressBar = uploadArea.querySelector('progress');
+                    const statusDiv = uploadArea.querySelector('.upload-status');
+                    
+                    try {
+                        const response = await fetch('https://n8n.tail851803.ts.net/webhook/640a0f98-a3b8-4e59-8e5f-2f872beeb194', {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'Accept': 'text/html' // Expecting HTML response in iframe
+                            }
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        // Get response as text to handle iframe content
+                        const responseText = await response.text();
+                        
+                        // Create a temporary iframe to parse the response
+                        const tempIframe = document.createElement('iframe');
+                        tempIframe.style.display = 'none';
+                        document.body.appendChild(tempIframe);
+                        
+                        // Write the response to the iframe
+                        tempIframe.contentDocument.open();
+                        tempIframe.contentDocument.write(responseText);
+                        tempIframe.contentDocument.close();
+                        
+                        // Extract the success/failure message from the iframe
+                        const iframeDoc = tempIframe.contentDocument || tempIframe.contentWindow.document;
+                        const success = iframeDoc.body.textContent.includes('success');
+                        
+                        // Clean up
+                        document.body.removeChild(tempIframe);
+                        
+                        if (success) {
+                            statusDiv.textContent = 'Upload successful!';
+                            statusDiv.style.color = 'green';
+                            progressBar.value = 100;
+                        } else {
+                            throw new Error('Upload failed: ' + (iframeDoc.body.textContent || 'Unknown error'));
+                        }
+                        
+                    } catch (error) {
+                        console.error('Upload error:', error);
+                        statusDiv.textContent = `Upload failed: ${error.message}`;
+                        statusDiv.style.color = 'red';
+                        throw error; // Re-throw to be caught by outer try-catch
+                    }
+                    
+                    // Small delay between uploads
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                // Refresh file list after all uploads
+                displayFiles();
+                updateStatistics();
+                
+            } catch (error) {
+                console.error('Error during file upload:', error);
+                // Show error message
+                uploadArea.innerHTML = `
+                    <div style="color: red; text-align: center; padding: 20px;">
+                        Error: ${error.message}
+                        <button onclick="location.reload()" style="margin-top: 10px; padding: 5px 10px;">Try Again</button>
+                    </div>
+                `;
+                return;
+            } finally {
+                // Reset file input
+                e.target.value = '';
+                
+                // Restore original upload area after a delay if not already showing an error
+                if (!uploadArea.innerHTML.includes('Error:')) {
+                    setTimeout(() => {
+                        uploadArea.innerHTML = originalHTML;
+                        // Re-attach event listeners if needed
+                        document.querySelector('.upload-btn').onclick = () => document.getElementById('fileInput').click();
+                    }, 2000);
+                }
             }
-            displayFiles();
-            updateStatistics();
-            e.target.value = ''; // Reset input
         });
 
         function formatFileSize(bytes) {
@@ -1065,44 +1095,15 @@
         }
 
         async function downloadFile(fileId, fileName) {
-            try {
-                const blob = await getFileBlob(fileId);
-                if (!blob) {
-                    alert('File not found or no longer available');
-                    return;
-                }
-
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            } catch (error) {
-                console.error('Download error:', error);
-                alert('Error downloading file');
-            }
+            alert('Download functionality needs to be implemented on the server side');
+            // In a real implementation, you would make a request to your server
+            // to download the file with the given fileId
         }
 
         async function generateDownloadLink(fileId) {
-            const files = await getAllFiles();
-            const file = files.find(f => f.id === fileId);
-            if (!file) {
-                alert('File not found');
-                return;
-            }
-
-            // Generate a unique link (in production, this would be handled by the server)
-            const baseUrl = window.location.origin;
-            const link = `${baseUrl}/download/${fileId}`;
-            
-            const linkDisplay = document.getElementById(`link-${fileId}`);
-            const linkInput = document.getElementById(`link-input-${fileId}`);
-            
-            linkInput.value = link;
-            linkDisplay.classList.add('active');
+            alert('Download link generation needs to be implemented on the server side');
+            // In a real implementation, you would make a request to your server
+            // to generate a download link for the file with the given fileId
         }
 
         function copyLink(fileId) {
@@ -1129,7 +1130,7 @@
         }
 
         // Initialize
-        initDB().then(() => {
+        document.addEventListener('DOMContentLoaded', () => {
             displayFiles();
             updateStatistics();
         });
