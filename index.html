@@ -494,22 +494,21 @@
     <div id="dashboardPage">
         <div class="dashboard-container">
             <!-- Sidebar -->
-            <div class="sidebar" id="sidebar">
-                <div class="sidebar-header">
-                    <h2>LiNAS</h2>
-                    <button class="toggle-btn" id="toggleBtn">☰</button>
-                </div>
-                <div class="sidebar-menu">
-                    <div class="menu-item active" data-page="dashboard">
-                        <span class="menu-icon">📊</span>
-                        <span>Dashboard</span>
-                    </div>
-                    <div class="menu-item" data-page="files">
-                        <span class="menu-icon">📁</span>
-                        <span>Files</span>
-                    </div>
-                </div>
-            </div>
+            <nav class="sidebar" id="sidebar">
+                <div class="logo">LiNAS</div>
+                <ul class="nav-links">
+                    <li class="menu-item">
+                        <a href="/dashboard" class="nav-link" data-page="dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="/files" class="nav-link" data-page="files">
+                            <i class="fas fa-folder"></i> Files
+                        </a>
+                    </li>
+                </ul>
+            </nav>
 
             <!-- Main Content -->
             <div class="main-content">
@@ -909,23 +908,56 @@
             document.getElementById('sidebar').classList.toggle('collapsed');
         });
 
-        // Menu navigation
-        document.querySelectorAll('.menu-item').forEach(item => {
-            item.addEventListener('click', () => {
-                document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-                item.classList.add('active');
+        // Client-side router
+        function navigateTo(path) {
+            // Update URL without page reload
+            window.history.pushState({}, '', path);
+            // Handle the route
+            handleRoute();
+        }
 
-                const page = item.getAttribute('data-page');
-                if (page === 'dashboard') {
-                    document.getElementById('dashboardSection').style.display = 'block';
-                    document.getElementById('filesSection').classList.remove('active');
-                    updateStatistics();
-                } else if (page === 'files') {
-                    document.getElementById('dashboardSection').style.display = 'none';
-                    document.getElementById('filesSection').classList.add('active');
+        // Handle route changes
+        function handleRoute() {
+            const path = window.location.pathname;
+            const menuItems = document.querySelectorAll('.menu-item');
+            
+            // Reset active states
+            menuItems.forEach(item => {
+                const link = item.querySelector('.nav-link');
+                if (link) {
+                    link.classList.remove('active');
+                    item.classList.remove('active');
                 }
             });
+
+            // Show the appropriate section based on path
+            if (path === '/files') {
+                document.getElementById('dashboardSection').style.display = 'none';
+                document.getElementById('filesSection').classList.add('active');
+                document.querySelector('a[href="/files"]').classList.add('active');
+                document.querySelector('a[href="/files"]').parentElement.classList.add('active');
+            } else {
+                // Default to dashboard
+                window.history.replaceState({}, '', '/dashboard');
+                document.getElementById('dashboardSection').style.display = 'block';
+                document.getElementById('filesSection').classList.remove('active');
+                document.querySelector('a[href="/dashboard"]').classList.add('active');
+                document.querySelector('a[href="/dashboard"]').parentElement.classList.add('active');
+                updateStatistics();
+            }
+        }
+
+        // Handle navigation
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a');
+            if (link && link.classList.contains('nav-link')) {
+                e.preventDefault();
+                navigateTo(link.getAttribute('href'));
+            }
         });
+
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', handleRoute);
 
         // Function to get all files (now a stub, as files are managed by the server)
         async function getAllFiles() {
@@ -1132,7 +1164,8 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             displayFiles();
-            updateStatistics();
+            // Handle initial route
+            handleRoute();
         });
     </script>
 </body>
