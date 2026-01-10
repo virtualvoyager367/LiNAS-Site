@@ -1618,7 +1618,9 @@
                 iframe.style.width = '1px';
                 iframe.style.height = '1px';
                 iframe.name = `webhook-iframe-${Date.now()}`;
+                console.log('Creating iframe with name:', iframe.name);
                 document.body.appendChild(iframe);
+                console.log('Iframe added to DOM');
 
                 // Create form to POST to webhook
                 const form = document.createElement('form');
@@ -1689,18 +1691,25 @@
                     window.addEventListener('message', handleMessage);
 
                     iframe.onload = function() {
+                        console.log('Iframe loaded successfully');
+                        console.log('Iframe src:', iframe.src);
+                        console.log('Iframe readyState:', iframe.readyState);
+                        
                         // Try to access iframe content to extract link directly (same origin fallback)
                         try {
                             const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                            console.log('Successfully accessed iframe document');
                             
                             // Look for script tags that might contain the link
                             const scripts = iframeDoc.querySelectorAll('script');
+                            console.log('Found', scripts.length, 'script tags');
                             for (let script of scripts) {
                                 const content = script.textContent || script.innerHTML;
                                 if (content) {
                                     // Look for URLs in the script content
                                     const match = content.match(/https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+/i);
                                     if (match) {
+                                        console.log('Found URL in script:', match[0]);
                                         cleanup();
                                         resolve(match[0]);
                                         return;
@@ -1710,9 +1719,11 @@
 
                             // Look for link elements or anchor tags
                             const links = iframeDoc.querySelectorAll('a[href]');
+                            console.log('Found', links.length, 'anchor tags');
                             for (let link of links) {
                                 const href = link.getAttribute('href');
                                 if (href && href.startsWith('http')) {
+                                    console.log('Found URL in anchor:', href);
                                     cleanup();
                                     resolve(href);
                                     return;
@@ -1722,10 +1733,12 @@
                             // Look for text content that might contain URLs
                             const textContent = iframeDoc.body ? 
                                 (iframeDoc.body.innerText || iframeDoc.body.textContent) : '';
+                            console.log('Body text content length:', textContent ? textContent.length : 0);
                             
                             if (textContent) {
                                 const match = textContent.match(/https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+/i);
                                 if (match) {
+                                    console.log('Found URL in text:', match[0]);
                                     cleanup();
                                     resolve(match[0]);
                                     return;
@@ -1737,17 +1750,32 @@
                             
                         } catch (e) {
                             // Cross-origin blocked, wait for postMessage
-                            console.log('Cross-origin access blocked, waiting for postMessage from iframe');
+                            console.log('Cross-origin access blocked:', e.message);
+                            console.log('Waiting for postMessage from iframe');
                         }
                     };
 
                     iframe.onerror = function() {
+                        console.error('Iframe error occurred');
                         cleanup();
                         reject(new Error('Failed to load webhook response'));
                     };
 
+                    // Debug: Log form details before submission
+                    console.log('Submitting form with action:', form.action);
+                    console.log('Form target:', form.target);
+                    console.log('Form method:', form.method);
+                    console.log('Form inputs:', form.querySelectorAll('input').length);
+                    
                     // Submit the form
-                    form.submit();
+                    try {
+                        form.submit();
+                        console.log('Form submitted successfully');
+                    } catch (error) {
+                        console.error('Form submission failed:', error);
+                        cleanup();
+                        reject(new Error('Form submission failed: ' + error.message));
+                    }
                 });
 
                 if (!link) {
