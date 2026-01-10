@@ -497,13 +497,20 @@
         <div class="dashboard-container">
             <!-- Sidebar -->
             <nav class="sidebar" id="sidebar">
-                <div class="logo">LiNAS</div>
+                <div class="sidebar-header">
+                    <h2>LiNAS</h2>
+                    <button class="toggle-btn" id="toggleBtn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
                 <ul class="nav-links">
                     <li class="menu-item active" data-page="dashboard">
-                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                        <i class="fas fa-tachometer-alt menu-icon"></i>
+                        <span>Dashboard</span>
                     </li>
                     <li class="menu-item" data-page="files">
-                        <i class="fas fa-folder"></i> Files
+                        <i class="fas fa-folder menu-icon"></i>
+                        <span>Files</span>
                     </li>
                 </ul>
             </nav>
@@ -1236,19 +1243,87 @@
         }
 
         async function updateStatistics() {
-            const files = await getAllFiles();
-            const totalFiles = files.length;
-            const totalSize = files.reduce((sum, file) => sum + file.size, 0);
-            const recentUploads = files.filter(file => {
-                const uploadDate = new Date(file.uploadDate);
-                const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-                return uploadDate > dayAgo;
-            }).length;
+            const totalFilesElement = document.getElementById('totalFiles');
+            const totalSizeElement = document.getElementById('totalSize');
+            const recentUploadsElement = document.getElementById('recentUploads');
+            const storageUsedElement = document.getElementById('storageUsed');
+            
+            if (!totalFilesElement || !totalSizeElement || !recentUploadsElement || !storageUsedElement) {
+                console.warn('One or more statistic elements not found');
+                return;
+            }
 
-            document.getElementById('totalFiles').textContent = totalFiles;
-            document.getElementById('totalSize').textContent = formatFileSize(totalSize);
-            document.getElementById('recentUploads').textContent = recentUploads;
-            document.getElementById('storageUsed').textContent = totalFiles > 0 ? '100%' : '0%';
+            try {
+                const files = await getAllFiles();
+                if (!files || !Array.isArray(files)) {
+                    console.error('Invalid files data received');
+                    return;
+                }
+
+                // Calculate statistics
+                const totalFiles = files.length;
+                let totalBytes = 0;
+                const now = new Date();
+                const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                let recentUploads = 0;
+
+                // Parse each file's size and count recent uploads
+                files.forEach(file => {
+                    // Convert size string to bytes
+                    const sizeStr = String(file.Filesize || '0B').trim().toUpperCase();
+                    const sizeMatch = sizeStr.match(/^([\d.]+)\s*([KMGTP]?B?|B)$/);
+                    
+                    if (sizeMatch) {
+                        const sizeValue = parseFloat(sizeMatch[1]);
+                        const unit = sizeMatch[2].charAt(0).toUpperCase() || 'B';
+                        
+                        // Convert all sizes to bytes for total
+                        const multiplier = {
+                            'B': 1,
+                            'K': 1024,
+                            'M': 1024 * 1024,
+                            'G': 1024 * 1024 * 1024,
+                            'T': 1024 * 1024 * 1024 * 1024,
+                            'P': 1024 * 1024 * 1024 * 1024 * 1024
+                        }[unit] || 1;
+                        
+                        totalBytes += sizeValue * multiplier;
+                    }
+
+                    // Count recent uploads (within last 7 days)
+                    const uploadDate = new Date(file.createdAt || file.updatedAt);
+                    if (uploadDate >= oneWeekAgo) {
+                        recentUploads++;
+                    }
+                });
+
+                // Format total size for display
+                let displaySize;
+                if (totalBytes < 1024) {
+                    displaySize = `${totalBytes} B`;
+                } else if (totalBytes < 1024 * 1024) {
+                    displaySize = `${(totalBytes / 1024).toFixed(2)} KB`;
+                } else if (totalBytes < 1024 * 1024 * 1024) {
+                    displaySize = `${(totalBytes / (1024 * 1024)).toFixed(2)} MB`;
+                } else if (totalBytes < 1024 * 1024 * 1024 * 1024) {
+                    displaySize = `${(totalBytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+                } else {
+                    displaySize = `${(totalBytes / (1024 * 1024 * 1024 * 1024)).toFixed(2)} TB`;
+                }
+
+                // Calculate storage used percentage (assuming 100GB total storage)
+                const totalStorageGB = 100 * 1024 * 1024 * 1024; // 100GB in bytes
+                const storagePercentage = Math.min(100, (totalBytes / totalStorageGB) * 100).toFixed(2);
+
+                // Update the UI
+                totalFilesElement.textContent = totalFiles;
+                totalSizeElement.textContent = displaySize;
+                recentUploadsElement.textContent = recentUploads;
+                storageUsedElement.textContent = `${storagePercentage}%`;
+
+            } catch (error) {
+                console.error('Error updating statistics:', error);
+            }
         }
 
         // Initialize
