@@ -1695,11 +1695,28 @@
                         console.log('Iframe src:', iframe.src);
                         console.log('Iframe readyState:', iframe.readyState);
                         
-                        // Check if iframe loaded an error page (empty src often indicates error)
+                        // Check if iframe loaded an error page or redirect
                         if (!iframe.src || iframe.src === 'about:blank') {
-                            console.log('Iframe src is blank, likely due to HTTP error');
+                            console.log('Iframe src is blank, checking for redirect');
+                            
+                            // Try to get the actual URL from iframe contentWindow (handles redirects)
+                            try {
+                                const iframeWindow = iframe.contentWindow;
+                                const actualUrl = iframeWindow.location.href;
+                                
+                                if (actualUrl && actualUrl !== 'about:blank' && actualUrl !== window.location.href) {
+                                    console.log('Found redirect URL:', actualUrl);
+                                    cleanup();
+                                    resolve(actualUrl);
+                                    return;
+                                }
+                            } catch (e) {
+                                console.log('Cannot access iframe location due to cross-origin:', e.message);
+                            }
+                            
+                            // If we can't access the redirect URL, we need to handle it differently
                             cleanup();
-                            reject(new Error('Webhook returned HTTP error (500) - check webhook server logs'));
+                            reject(new Error('Webhook redirected but iframe access blocked - the webhook should return HTML content instead of redirecting'));
                             return;
                         }
                         
