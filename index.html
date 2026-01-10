@@ -383,7 +383,27 @@
             height: 100%;
             background-color: #4CAF50;
             width: 0%;
-            transition: width 0.2s ease;
+            transition: width 0.25s ease;
+        }
+
+        .progress-fill.is-active {
+            background-image: linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.25) 25%,
+                rgba(255, 255, 255, 0.05) 25%,
+                rgba(255, 255, 255, 0.05) 50%,
+                rgba(255, 255, 255, 0.25) 50%,
+                rgba(255, 255, 255, 0.25) 75%,
+                rgba(255, 255, 255, 0.05) 75%,
+                rgba(255, 255, 255, 0.05)
+            );
+            background-size: 24px 24px;
+            animation: progressStripes 0.9s linear infinite;
+        }
+
+        @keyframes progressStripes {
+            from { background-position: 0 0; }
+            to { background-position: 24px 0; }
         }
 
         .cancel-btn {
@@ -1163,8 +1183,24 @@
             function showUploadProgress() {
                 if (uploadProgress) uploadProgress.style.display = 'block';
                 if (cancelUploadBtn) cancelUploadBtn.style.display = 'inline-flex';
+                if (loadProgress) loadProgress.classList.add('is-active');
+                if (uploadProgressBar) uploadProgressBar.classList.add('is-active');
                 setPrepareProgress(0);
                 setUploadProgress(0);
+            }
+
+            function hideUploadProgressSoon() {
+                setTimeout(() => {
+                    if (uploadProgress) uploadProgress.style.display = 'none';
+                    if (loadProgress) loadProgress.classList.remove('is-active');
+                    if (uploadProgressBar) uploadProgressBar.classList.remove('is-active');
+                }, 650);
+            }
+
+            function hideUploadProgressNow() {
+                if (uploadProgress) uploadProgress.style.display = 'none';
+                if (loadProgress) loadProgress.classList.remove('is-active');
+                if (uploadProgressBar) uploadProgressBar.classList.remove('is-active');
             }
 
             function hideCancel() {
@@ -1192,10 +1228,15 @@
                     const start = performance.now();
                     const duration = 450;
 
+                    function easeInOutCubic(t) {
+                        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                    }
+
                     function tick(now) {
-                        const t = Math.min(1, (now - start) / duration);
-                        setPrepareProgress(t * 100);
-                        if (t < 1) {
+                        const raw = Math.min(1, (now - start) / duration);
+                        const eased = easeInOutCubic(raw);
+                        setPrepareProgress(eased * 100);
+                        if (raw < 1) {
                             requestAnimationFrame(tick);
                         } else {
                             resolve();
@@ -1291,7 +1332,9 @@
                 if (selectFilesBtn) selectFilesBtn.disabled = true;
 
                 try {
-                    for (const file of files) {
+                    for (let idx = 0; idx < files.length; idx++) {
+                        const file = files[idx];
+                        const isLast = idx === files.length - 1;
                         showUploadProgress();
                         setFileInfo(`Uploading ${file.name}...`, '#666');
 
@@ -1300,6 +1343,10 @@
 
                         await uploadFileXhr(file);
                         setFileInfo('Upload successful!', 'green');
+
+                        if (isLast) {
+                            hideUploadProgressSoon();
+                        }
 
                         await new Promise(resolve => setTimeout(resolve, 500));
                     }
@@ -1310,6 +1357,7 @@
                     console.error('Error during file upload:', error);
                     if (error && error.name === 'AbortError') {
                         setFileInfo('Upload cancelled', '#666');
+                        hideUploadProgressNow();
                     } else {
                         setFileInfo(`Upload failed: ${error.message}`, 'red');
                     }
@@ -1421,7 +1469,7 @@
                             </div>
                         </div>
                         <div class="file-actions">
-                            <button class="action-btn download-btn" onclick="downloadFile(${file.id}, '${file.Filename.replace(/'/g, "\\'")}', event)">
+                            <button class="action-btn download-btn" onclick="downloadFile(${file.id}, '${file.Filename.replace(/'/g, "\\'")}', '${String(file.Filesize || '').replace(/'/g, "\\'")}', event)">
                                 <i class="fas fa-download"></i> Download
                             </button>
                             <button class="action-btn link-btn" onclick="generateDownloadLink(${file.id})">
@@ -1449,7 +1497,25 @@
             }
         }
 
-        async function downloadFile(fileId, filename, event) {
+        function parseFilesizeToBytes(sizeString) {
+            const sizeStr = String(sizeString || '0B').trim().toUpperCase();
+            const match = sizeStr.match(/^([\d.]+)\s*([KMGTP]?B?|B)$/);
+            if (!match) return 0;
+            const value = parseFloat(match[1]);
+            if (!isFinite(value)) return 0;
+            const unitChar = (match[2] || 'B').charAt(0).toUpperCase();
+            const multiplier = {
+                'B': 1,
+                'K': 1024,
+                'M': 1024 * 1024,
+                'G': 1024 * 1024 * 1024,
+                'T': 1024 * 1024 * 1024 * 1024,
+                'P': 1024 * 1024 * 1024 * 1024 * 1024
+            }[unitChar] || 1;
+            return Math.round(value * multiplier);
+        }
+
+        async function downloadFile(fileId, filename, fileSize, event) {
             // Get the button that triggered the download
             const downloadBtn = event ? event.target.closest('.download-btn') : null;
             let originalText = '';
@@ -1486,8 +1552,10 @@
                     throw new Error(`Failed to download file: ${response.status} ${response.statusText}`);
                 }
 
+                const bytes = parseFilesizeToBytes(fileSize);
+                const largeFileThresholdBytes = 64 * 1024 * 1024;
                 const canStreamToDisk = !!(window.showSaveFilePicker && response.body && response.body.pipeTo);
-                if (canStreamToDisk) {
+                if (canStreamToDisk && bytes >= largeFileThresholdBytes) {
                     const fileHandle = await window.showSaveFilePicker({
                         suggestedName: filename
                     });
