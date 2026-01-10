@@ -217,6 +217,47 @@
             margin: 0;
         }
 
+        /* Logout Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal .login-container {
+            background: #3a3a3a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .modal h2 {
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .modal p {
+            color: #cccccc;
+            margin-bottom: 25px;
+            font-size: 16px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
         /* Sidebar Footer */
         .sidebar-footer {
             margin-top: auto;
@@ -507,6 +548,18 @@
                 <button type="submit" class="login-btn" id="loginBtn">Login</button>
                 <div class="error-message" id="errorMessage"></div>
             </form>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="modal">
+        <div class="login-container">
+            <h2>Confirm Logout</h2>
+            <p>Are you sure you want to log out?</p>
+            <div class="modal-buttons">
+                <button id="confirmLogout" class="login-btn">Logout</button>
+                <button id="cancelLogout" class="login-btn" style="background-color: #6c757d; margin-left: 10px;">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -1348,23 +1401,56 @@
         }
 
         // Logout function
-        function logout() {
-            if (confirm('Are you sure you want to log out?')) {
-                // Delete auth cookies
-                deleteCookie('ada_login_token');
-                deleteCookie('ada_current_user');
-                
-                // Redirect to login page
-                window.location.href = window.location.pathname;
+        function showLogoutConfirmation() {
+            const modal = document.getElementById('logoutModal');
+            if (modal) {
+                modal.style.display = 'flex';
             }
+        }
+        
+        function hideLogoutConfirmation() {
+            const modal = document.getElementById('logoutModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        function logout() {
+            // Delete auth cookies
+            deleteCookie('ada_login_token');
+            deleteCookie('ada_current_user');
+            
+            // Redirect to login page
+            window.location.href = window.location.pathname;
         }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             // Add logout button event listener
             const logoutBtn = document.getElementById('logoutBtn');
+            const confirmLogoutBtn = document.getElementById('confirmLogout');
+            const cancelLogoutBtn = document.getElementById('cancelLogout');
+            
             if (logoutBtn) {
-                logoutBtn.addEventListener('click', logout);
+                logoutBtn.addEventListener('click', showLogoutConfirmation);
+            }
+            
+            if (confirmLogoutBtn) {
+                confirmLogoutBtn.addEventListener('click', logout);
+            }
+            
+            if (cancelLogoutBtn) {
+                cancelLogoutBtn.addEventListener('click', hideLogoutConfirmation);
+            }
+            
+            // Close modal when clicking outside
+            const modal = document.getElementById('logoutModal');
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        hideLogoutConfirmation();
+                    }
+                });
             }
 
             // Only run these if we're on a page with these elements
