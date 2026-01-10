@@ -1725,6 +1725,37 @@
                             const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                             console.log('Successfully accessed iframe document');
                             
+                            // Get the full text content (for JSON responses)
+                            const textContent = iframeDoc.body ? 
+                                (iframeDoc.body.innerText || iframeDoc.body.textContent) : '';
+                            console.log('Body text content:', textContent);
+                            
+                            if (textContent) {
+                                // Try to parse as JSON first
+                                try {
+                                    const data = JSON.parse(textContent);
+                                    console.log('Parsed JSON:', data);
+                                    const link = data?.link || data?.url || data?.downloadUrl || data?.download_link || '';
+                                    if (link) {
+                                        console.log('Found link in JSON:', link);
+                                        cleanup();
+                                        resolve(link);
+                                        return;
+                                    }
+                                } catch (jsonError) {
+                                    console.log('Not JSON, trying other methods');
+                                }
+                                
+                                // If not JSON, look for URLs in text
+                                const match = textContent.match(/https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+/i);
+                                if (match) {
+                                    console.log('Found URL in text:', match[0]);
+                                    cleanup();
+                                    resolve(match[0]);
+                                    return;
+                                }
+                            }
+
                             // Look for script tags that might contain the link
                             const scripts = iframeDoc.querySelectorAll('script');
                             console.log('Found', scripts.length, 'script tags');
@@ -1751,21 +1782,6 @@
                                     console.log('Found URL in anchor:', href);
                                     cleanup();
                                     resolve(href);
-                                    return;
-                                }
-                            }
-
-                            // Look for text content that might contain URLs
-                            const textContent = iframeDoc.body ? 
-                                (iframeDoc.body.innerText || iframeDoc.body.textContent) : '';
-                            console.log('Body text content length:', textContent ? textContent.length : 0);
-                            
-                            if (textContent) {
-                                const match = textContent.match(/https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+/i);
-                                if (match) {
-                                    console.log('Found URL in text:', match[0]);
-                                    cleanup();
-                                    resolve(match[0]);
                                     return;
                                 }
                             }
