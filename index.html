@@ -2217,21 +2217,40 @@
 
         // Universal quota checker - gets fresh data and checks quota
         async function checkQuotaStatus() {
+            console.log('🔥 checkQuotaStatus STARTED');
             try {
                 const result = await getAllFiles();
+                console.log('🔥 getAllFiles result:', result);
                 const user = result.user;
+                console.log('🔥 user data:', user);
                 
                 if (user && user.used_space && user.permitted_space) {
                     const storagePercentage = Math.min(100, user.usage).toFixed(2);
-                    console.log('checkQuotaStatus: Fresh data - usage:', user.usage, 'percentage:', storagePercentage);
+                    console.log('🔥 checkQuotaStatus: Fresh data - usage:', user.usage, 'percentage:', storagePercentage);
+                    
+                    // Add visual indicator
+                    const uploadContainer = document.getElementById('uploadContainer');
+                    if (uploadContainer) {
+                        console.log('🔥 Upload container found before check:', uploadContainer.innerHTML.substring(0, 100));
+                    }
+                    
                     checkQuotaAndToggleUpload(storagePercentage);
+                    
+                    // Check result
+                    setTimeout(() => {
+                        const containerAfter = document.getElementById('uploadContainer');
+                        if (containerAfter) {
+                            console.log('🔥 Upload container AFTER check:', containerAfter.innerHTML.substring(0, 100));
+                        }
+                    }, 100);
+                    
                     return storagePercentage;
                 } else {
-                    console.log('checkQuotaStatus: No user data available');
+                    console.log('🔥 checkQuotaStatus: No user data available');
                     return null;
                 }
             } catch (error) {
-                console.error('checkQuotaStatus: Error checking quota:', error);
+                console.error('🔥 checkQuotaStatus: Error checking quota:', error);
                 return null;
             }
         }
@@ -2371,6 +2390,16 @@
             }
             // Check quota on initial page load
             checkQuotaStatus();
+            
+            // Add debug button for testing
+            const debugBtn = document.createElement('button');
+            debugBtn.textContent = 'DEBUG: Check Quota Now';
+            debugBtn.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 999999; background: red; color: white; padding: 10px; border: none; cursor: pointer;';
+            debugBtn.onclick = () => {
+                console.log('🔥 MANUAL QUOTA CHECK TRIGGERED');
+                checkQuotaStatus();
+            };
+            document.body.appendChild(debugBtn);
         });
     </script>
 </body>
