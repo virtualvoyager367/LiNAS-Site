@@ -1305,9 +1305,12 @@
                         document.getElementById('dashboardSection').style.display = 'block';
                         document.getElementById('filesSection').classList.remove('active');
                         updateStatistics();
+                        checkQuotaStatus(); // Additional quota check
                     } else if (page === 'files') {
                         document.getElementById('dashboardSection').style.display = 'none';
                         document.getElementById('filesSection').classList.add('active');
+                        displayFiles(); // This will check quota
+                        checkQuotaStatus(); // Additional quota check
                     }
                 });
             });
@@ -1517,6 +1520,7 @@
 
                     displayFiles();
                     updateStatistics();
+                    checkQuotaStatus(); // Additional quota check
                 } catch (error) {
                     console.error('Error during file upload:', error);
                     if (error && error.name === 'AbortError') {
@@ -1652,7 +1656,10 @@
                 // Check quota if user data is available
                 if (user && user.used_space && user.permitted_space) {
                     const storagePercentage = Math.min(100, user.usage).toFixed(2);
+                    console.log('displayFiles: Quota check - usage:', user.usage, 'percentage:', storagePercentage);
                     checkQuotaAndToggleUpload(storagePercentage);
+                } else {
+                    console.log('displayFiles: No user data available for quota check');
                 }
                 
                 if (files.length === 0) {
@@ -2023,6 +2030,7 @@
 
                     // Refresh the files list after successful deletion
                     await displayFiles();
+                    await checkQuotaStatus(); // Additional quota check
 
                 } catch (error) {
                     console.error('Error deleting file:', error);
@@ -2207,14 +2215,42 @@
             }
         }
 
+        // Universal quota checker - gets fresh data and checks quota
+        async function checkQuotaStatus() {
+            try {
+                const result = await getAllFiles();
+                const user = result.user;
+                
+                if (user && user.used_space && user.permitted_space) {
+                    const storagePercentage = Math.min(100, user.usage).toFixed(2);
+                    console.log('checkQuotaStatus: Fresh data - usage:', user.usage, 'percentage:', storagePercentage);
+                    checkQuotaAndToggleUpload(storagePercentage);
+                    return storagePercentage;
+                } else {
+                    console.log('checkQuotaStatus: No user data available');
+                    return null;
+                }
+            } catch (error) {
+                console.error('checkQuotaStatus: Error checking quota:', error);
+                return null;
+            }
+        }
+
         // Function to check quota and toggle upload area
         function checkQuotaAndToggleUpload(storagePercentage) {
+            console.log('checkQuotaAndToggleUpload called with percentage:', storagePercentage);
             const uploadContainer = document.getElementById('uploadContainer');
             const uploadSection = document.querySelector('.upload-section');
             
+            console.log('uploadContainer found:', !!uploadContainer, 'uploadSection found:', !!uploadSection);
+            
             if (uploadContainer && uploadSection) {
-                if (parseFloat(storagePercentage) >= 100) {
+                const quotaExceeded = parseFloat(storagePercentage) >= 100;
+                console.log('Quota exceeded?', quotaExceeded, 'storagePercentage:', storagePercentage, 'parsed:', parseFloat(storagePercentage));
+                
+                if (quotaExceeded) {
                     // Hide upload area and show quota exceeded message
+                    console.log('Hiding upload area and showing quota exceeded message');
                     uploadContainer.innerHTML = `
                         <div style="padding: 30px; text-align: center; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; color: #856404;">
                             <div style="font-size: 24px; margin-bottom: 10px;">⚠️</div>
@@ -2333,6 +2369,8 @@
             if (document.getElementById('totalFiles')) {
                 updateStatistics();
             }
+            // Check quota on initial page load
+            checkQuotaStatus();
         });
     </script>
 </body>
