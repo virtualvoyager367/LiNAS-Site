@@ -900,27 +900,58 @@
         }
 
         // Sidebar toggle
-        document.getElementById('toggleBtn').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('collapsed');
-        });
+        function initSidebarToggle() {
+            const toggleBtn = document.getElementById('toggleBtn');
+            const sidebar = document.getElementById('sidebar');
+            
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                });
+            } else {
+                console.warn('Sidebar toggle elements not found');
+            }
+        }
+        
+        // Initialize sidebar toggle when DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSidebarToggle);
+        } else {
+            initSidebarToggle();
+        }
 
-        // Menu navigation
-        document.querySelectorAll('.menu-item').forEach(item => {
-            item.addEventListener('click', () => {
-                document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-                item.classList.add('active');
+        // Menu navigation - will be initialized after DOM is loaded
+        function initMenuNavigation() {
+            const menuItems = document.querySelectorAll('.menu-item');
+            if (!menuItems.length) {
+                console.warn('No menu items found for navigation');
+                return;
+            }
+            
+            menuItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+                    item.classList.add('active');
 
-                const page = item.getAttribute('data-page');
-                if (page === 'dashboard') {
-                    document.getElementById('dashboardSection').style.display = 'block';
-                    document.getElementById('filesSection').classList.remove('active');
-                    updateStatistics();
-                } else if (page === 'files') {
-                    document.getElementById('dashboardSection').style.display = 'none';
-                    document.getElementById('filesSection').classList.add('active');
-                }
+                    const page = item.getAttribute('data-page');
+                    if (page === 'dashboard') {
+                        document.getElementById('dashboardSection').style.display = 'block';
+                        document.getElementById('filesSection').classList.remove('active');
+                        updateStatistics();
+                    } else if (page === 'files') {
+                        document.getElementById('dashboardSection').style.display = 'none';
+                        document.getElementById('filesSection').classList.add('active');
+                    }
+                });
             });
-        });
+        }
+        
+        // Initialize menu navigation when DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initMenuNavigation);
+        } else {
+            initMenuNavigation();
+        }
 
         // Function to get all files from the server
         async function getAllFiles() {
