@@ -1656,6 +1656,8 @@
 
                     function cleanup() {
                         clearTimeout(timeout);
+                        // Remove event listener
+                        window.removeEventListener('message', handleMessage);
                         try {
                             if (form && form.parentNode) {
                                 form.parentNode.removeChild(form);
@@ -1666,57 +1668,76 @@
                         } catch (_) {}
                     }
 
-                    iframe.onload = function() {
-                        try {
-                            // Check if we can access the iframe content
-                            let iframeDoc;
-                            try {
-                                iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                            } catch (e) {
-                                // Cross-origin access blocked, try alternative approach
-                                cleanup();
-                                reject(new Error('Cannot access webhook response due to cross-origin restrictions'));
-                                return;
-                            }
+                    // Listen for messages from the iframe
+                    function handleMessage(event) {
+                        // Only accept messages from the webhook domain
+                        if (event.origin !== 'https://n8n.tail851803.ts.net') {
+                            return;
+                        }
 
-                            // Get the response content
-                            const iframeContent = iframeDoc.body ? 
-                                (iframeDoc.body.innerText || iframeDoc.body.textContent) : 
-                                '';
-
-                            if (!iframeContent) {
-                                cleanup();
-                                reject(new Error('Empty response from webhook'));
-                                return;
-                            }
-
-                            let link = '';
-                            
-                            // Try to parse as JSON first
-                            try {
-                                const data = JSON.parse(iframeContent);
-                                link = data?.link || data?.url || data?.downloadUrl || data?.download_link || '';
-                                if (!link && typeof data === 'string') link = data;
-                                if (!link && Array.isArray(data) && data.length) {
-                                    const first = data[0];
-                                    link = first?.link || first?.url || first?.downloadUrl || '';
-                                }
-                            } catch (_) {
-                                // If not JSON, extract URL using regex
-                                const match = iframeContent.match(/https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+/i);
-                                link = match ? match[0] : '';
-                            }
-
+                        if (event.data && event.data.type === 'downloadLink') {
                             cleanup();
-
-                            if (!link) {
-                                reject(new Error('No download link found in webhook response'));
+                            if (event.data.link) {
+                                resolve(event.data.link);
                             } else {
-                                resolve(link);
+                                reject(new Error('No download link received from iframe'));
                             }
-                        } catch (error) {
-                            cleanup();
-                            reject(new Error('Failed to process webhook response: ' + error.message));
+                        }
+                    }
+
+                    // Add message listener
+                    window.addEventListener('message', handleMessage);
+
+                    iframe.onload = function() {
+                        // Try to access iframe content to extract link directly (same origin fallback)
+                        try {
+                            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                            
+                            // Look for script tags that might contain the link
+                            const scripts = iframeDoc.querySelectorAll('script');
+                            for (let script of scripts) {
+                                const content = script.textContent || script.innerHTML;
+                                if (content) {
+                                    // Look for URLs in the script content
+                                    const match = content.match(/https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+/i);
+                                    if (match) {
+                                        cleanup();
+                                        resolve(match[0]);
+                                        return;
+                                    }
+                                }
+                            }
+
+                            // Look for link elements or anchor tags
+                            const links = iframeDoc.querySelectorAll('a[href]');
+                            for (let link of links) {
+                                const href = link.getAttribute('href');
+                                if (href && href.startsWith('http')) {
+                                    cleanup();
+                                    resolve(href);
+                                    return;
+                                }
+                            }
+
+                            // Look for text content that might contain URLs
+                            const textContent = iframeDoc.body ? 
+                                (iframeDoc.body.innerText || iframeDoc.body.textContent) : '';
+                            
+                            if (textContent) {
+                                const match = textContent.match(/https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+/i);
+                                if (match) {
+                                    cleanup();
+                                    resolve(match[0]);
+                                    return;
+                                }
+                            }
+
+                            // If we get here, we couldn't find a link, wait for postMessage
+                            console.log('Could not extract link directly, waiting for postMessage from iframe');
+                            
+                        } catch (e) {
+                            // Cross-origin blocked, wait for postMessage
+                            console.log('Cross-origin access blocked, waiting for postMessage from iframe');
                         }
                     };
 
