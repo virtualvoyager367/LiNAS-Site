@@ -2153,7 +2153,7 @@
                 if (user && user.used_space && user.permitted_space) {
                     // Use the user data from API
                     displaySize = formatBytes(user.used_space);
-                    storagePercentage = Math.min(100, (user.usage * 100)).toFixed(2);
+                    storagePercentage = Math.min(100, user.usage).toFixed(2);
                 } else {
                     // Fallback: calculate from files (old method)
                     let totalBytes = 0;
