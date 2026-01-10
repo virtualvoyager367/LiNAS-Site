@@ -1653,14 +1653,7 @@
                 const files = result.files;
                 const user = result.user;
                 
-                // Check quota if user data is available
-                if (user && user.used_space && user.permitted_space) {
-                    const storagePercentage = Math.min(100, user.usage).toFixed(2);
-                    console.log('displayFiles: Quota check - usage:', user.usage, 'percentage:', storagePercentage);
-                    checkQuotaAndToggleUpload(storagePercentage);
-                } else {
-                    console.log('displayFiles: No user data available for quota check');
-                }
+                // Quota checking is now handled by the universal checkQuotaStatus function
                 
                 if (files.length === 0) {
                     filesList.innerHTML = `
@@ -2207,9 +2200,6 @@
                 recentUploadsElement.textContent = recentUploads;
                 storageUsedElement.textContent = `${storagePercentage}%`;
 
-                // Check quota and handle upload area visibility
-                checkQuotaAndToggleUpload(storagePercentage);
-
             } catch (error) {
                 console.error('Error updating statistics:', error);
             }
@@ -2217,59 +2207,31 @@
 
         // Universal quota checker - gets fresh data and checks quota
         async function checkQuotaStatus() {
-            console.log('🔥 checkQuotaStatus STARTED');
             try {
                 const result = await getAllFiles();
-                console.log('🔥 getAllFiles result:', result);
                 const user = result.user;
-                console.log('🔥 user data:', user);
                 
                 if (user && user.used_space && user.permitted_space) {
                     const storagePercentage = Math.min(100, user.usage).toFixed(2);
-                    console.log('🔥 checkQuotaStatus: Fresh data - usage:', user.usage, 'percentage:', storagePercentage);
-                    
-                    // Add visual indicator
-                    const uploadContainer = document.getElementById('uploadContainer');
-                    if (uploadContainer) {
-                        console.log('🔥 Upload container found before check:', uploadContainer.innerHTML.substring(0, 100));
-                    }
-                    
                     checkQuotaAndToggleUpload(storagePercentage);
-                    
-                    // Check result
-                    setTimeout(() => {
-                        const containerAfter = document.getElementById('uploadContainer');
-                        if (containerAfter) {
-                            console.log('🔥 Upload container AFTER check:', containerAfter.innerHTML.substring(0, 100));
-                        }
-                    }, 100);
-                    
                     return storagePercentage;
-                } else {
-                    console.log('🔥 checkQuotaStatus: No user data available');
-                    return null;
                 }
+                return null;
             } catch (error) {
-                console.error('🔥 checkQuotaStatus: Error checking quota:', error);
+                console.error('Error checking quota:', error);
                 return null;
             }
         }
 
         // Function to check quota and toggle upload area
         function checkQuotaAndToggleUpload(storagePercentage) {
-            console.log('checkQuotaAndToggleUpload called with percentage:', storagePercentage);
             const uploadContainer = document.getElementById('uploadContainer');
-            const uploadSection = document.querySelector('.upload-section');
             
-            console.log('uploadContainer found:', !!uploadContainer, 'uploadSection found:', !!uploadSection);
-            
-            if (uploadContainer && uploadSection) {
+            if (uploadContainer) {
                 const quotaExceeded = parseFloat(storagePercentage) >= 100;
-                console.log('Quota exceeded?', quotaExceeded, 'storagePercentage:', storagePercentage, 'parsed:', parseFloat(storagePercentage));
                 
                 if (quotaExceeded) {
                     // Hide upload area and show quota exceeded message
-                    console.log('Hiding upload area and showing quota exceeded message');
                     uploadContainer.innerHTML = `
                         <div style="padding: 30px; text-align: center; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; color: #856404;">
                             <div style="font-size: 24px; margin-bottom: 10px;">⚠️</div>
@@ -2390,16 +2352,6 @@
             }
             // Check quota on initial page load
             checkQuotaStatus();
-            
-            // Add debug button for testing
-            const debugBtn = document.createElement('button');
-            debugBtn.textContent = 'DEBUG: Check Quota Now';
-            debugBtn.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 999999; background: red; color: white; padding: 10px; border: none; cursor: pointer;';
-            debugBtn.onclick = () => {
-                console.log('🔥 MANUAL QUOTA CHECK TRIGGERED');
-                checkQuotaStatus();
-            };
-            document.body.appendChild(debugBtn);
         });
     </script>
 </body>
