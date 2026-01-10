@@ -1312,50 +1312,7 @@
                 });
             });
 
-            const xhr = new XMLHttpRequest();
-            currentXhr = xhr;
-
-            xhr.open('POST', 'https://n8n.tail851803.ts.net/webhook/640a0f98-a3b8-4e59-8e5f-2f872beeb194', true);
-            xhr.setRequestHeader('Accept', 'text/html');
-
-            let uploadStarted = false;
-            xhr.upload.onprogress = (evt) => {
-                if (!uploadStarted) {
-                    uploadStarted = true;
-                    setPrepareProgress(100);
-                }
-                if (evt.lengthComputable) {
-                    const pct = (evt.loaded / evt.total) * 100;
-                    setUploadProgress(pct);
-                }
-            };
-
-            xhr.onload = () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    setUploadProgress(100);
-                    setFileInfo('Upload complete!', 'green');
-                    hideUploadProgressSoon();
-                } else {
-                    setFileInfo('Upload failed: ' + xhr.statusText, 'red');
-                }
-            };
-
-            xhr.onerror = () => {
-                setFileInfo('Upload failed: Network error', 'red');
-                hideUploadProgressSoon();
-            };
-
-            xhr.onabort = () => {
-                setFileInfo('Upload cancelled', 'orange');
-                hideUploadProgressSoon();
-            };
-
-            // Send the file
-            const formData = new FormData();
-            formData.append('file', file);
-            xhr.send(formData);
-        }
-
+            
         // File upload handler
         (function() {
             const fileInput = document.getElementById('fileInput');
