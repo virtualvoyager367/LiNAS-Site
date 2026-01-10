@@ -1384,12 +1384,15 @@
             }
         })();
 
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
+        function formatBytes(bytes) {
+            const b = Number(bytes) || 0;
+            if (b <= 0) return '0 B';
             const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+            const i = Math.min(sizes.length - 1, Math.floor(Math.log(b) / Math.log(k)));
+            const value = b / Math.pow(k, i);
+            const rounded = value >= 1000 ? value.toFixed(0) : value >= 10 ? value.toFixed(1) : value.toFixed(2);
+            return `${parseFloat(rounded)} ${sizes[i]}`;
         }
 
         function getFileIcon(filename) {
@@ -1404,7 +1407,7 @@
             if (extension === 'pdf') return '📄';
             if (['doc', 'docx', 'odt', 'pages'].includes(extension)) return '📝';
             if (['xls', 'xlsx', 'csv', 'ods', 'numbers'].includes(extension)) return '📊';
-            if (['zip', 'rar', '7z', 'tar', 'gz'].includes(extension)) return '�';
+            if (['zip', 'rar', '7z', 'tar', 'gz', 'jar'].includes(extension)) return '📦';
             return '📄';
         }
 
@@ -1419,18 +1422,12 @@
             });
         }
 
-        function formatFileSize(sizeString) {
-            // If it's already formatted (e.g., "9B"), return as is
-            if (typeof sizeString === 'string' && /^\d+[BKMGTP]?B?$/i.test(sizeString)) {
-                return sizeString;
+        function formatFileSize(sizeValue) {
+            if (typeof sizeValue === 'number') {
+                return formatBytes(sizeValue);
             }
-            // Fallback for numeric sizes
-            const bytes = parseInt(sizeString) || 0;
-            if (bytes === 0) return '0 B';
-            const k = 1024;
-            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            const bytes = parseFilesizeToBytes(sizeValue);
+            return formatBytes(bytes);
         }
 
         async function displayFiles() {
