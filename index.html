@@ -1784,6 +1784,8 @@
         }
 
         function showLinkModal(link) {
+            console.log('Creating modal with link:', link);
+            
             // Create modal overlay
             const overlay = document.createElement('div');
             overlay.className = 'modal-overlay';
@@ -1791,6 +1793,7 @@
             // Create modal content
             const modal = document.createElement('div');
             modal.className = 'modal';
+            console.log('Modal elements created');
             
             // Create close button
             const closeBtn = document.createElement('button');
@@ -1841,6 +1844,8 @@
             
             // Add to page and show
             document.body.appendChild(overlay);
+            console.log('Modal added to DOM');
+            console.log('Modal display style:', window.getComputedStyle(overlay).display);
             
             // Close on overlay click
             overlay.onclick = (e) => {
