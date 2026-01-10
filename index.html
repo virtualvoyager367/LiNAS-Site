@@ -339,171 +339,6 @@
             display: none;
         }
 
-        /* Admin Section */
-        .admin-section {
-            display: none;
-        }
-
-        .admin-card {
-            background: #3a3a3a;
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 25px;
-            border: 1px solid #444;
-        }
-
-        .admin-card h2 {
-            color: #ffffff;
-            margin-bottom: 20px;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .admin-card h2 i {
-            color: #667eea;
-        }
-
-        .admin-table-container {
-            overflow-x: auto;
-            border-radius: 8px;
-            border: 1px solid #444;
-        }
-
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #2a2a2a;
-        }
-
-        .admin-table th,
-        .admin-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #444;
-        }
-
-        .admin-table th {
-            background: #333;
-            color: #ffffff;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .admin-table td {
-            color: #cccccc;
-            font-size: 13px;
-        }
-
-        .admin-table tbody tr:hover {
-            background: #333;
-        }
-
-        .admin-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        .admin-stat-card {
-            background: #3a3a3a;
-            border-radius: 10px;
-            padding: 20px;
-            border: 1px solid #444;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .admin-stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            background: #667eea;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 20px;
-        }
-
-        .admin-stat-info {
-            flex: 1;
-        }
-
-        .admin-stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #ffffff;
-            margin-bottom: 5px;
-        }
-
-        .admin-stat-label {
-            font-size: 12px;
-            color: #cccccc;
-        }
-
-        .settings-form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .setting-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .setting-group label {
-            color: #cccccc;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .setting-group input {
-            padding: 10px;
-            border: 1px solid #555;
-            border-radius: 5px;
-            background: #2a2a2a;
-            color: #ffffff;
-            font-size: 14px;
-        }
-
-        .setting-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .action-btn-small {
-            padding: 5px 10px;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 11px;
-            margin-right: 5px;
-        }
-
-        .edit-btn {
-            background: #667eea;
-            color: white;
-        }
-
-        .edit-btn:hover {
-            background: #5568d3;
-        }
-
-        .delete-user-btn {
-            background: #dc3545;
-            color: white;
-        }
-
-        .delete-user-btn:hover {
-            background: #c82333;
-        }
-
         .files-section.active {
             display: block;
         }
@@ -1020,10 +855,6 @@
                     </li>
                 </ul>
                 <div class="sidebar-footer">
-                    <div class="menu-item" id="adminBtn" style="display: none;">
-                        <i class="fas fa-cogs menu-icon"></i>
-                        <span>Administration</span>
-                    </div>
                     <div class="menu-item" id="logoutBtn">
                         <i class="fas fa-sign-out-alt menu-icon"></i>
                         <span>Logout</span>
@@ -1055,6 +886,17 @@
                             <div class="stat-card">
                                 <h3>Storage Used</h3>
                                 <div class="value" id="storageUsed">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Files Section -->
+                <div class="content-section files-section" id="filesSection">
+                    <div class="content-header">
+                        <h1>Files</h1>
+                    </div>
+                    <div class="content-body">
                         <div class="upload-area" id="uploadContainer">
                             <input type="file" id="fileInput" multiple>
                             <button id="selectFilesBtn" class="upload-btn">
@@ -1083,98 +925,6 @@
                             <div style="padding: 20px; text-align: center; color: #666;">
                                 No files uploaded yet. Click "Upload Files" to get started.
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Administration Section -->
-                <div class="content-section admin-section" id="adminSection" style="display: none;">
-                    <div class="content-header">
-                        <h1>Administration</h1>
-                        <p>Manage users and system settings</p>
-                    </div>
-
-                    <!-- User Management -->
-                    <div class="admin-card">
-                        <h2><i class="fas fa-users"></i> User Management</h2>
-                        <div class="admin-table-container">
-                            <table class="admin-table" id="usersTable">
-                                <thead>
-                                    <tr>
-                                        <th>Username</th>
-                                        <th>Total Files</th>
-                                        <th>Total Size</th>
-                                        <th>Storage Limit</th>
-                                        <th>Usage %</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="usersTableBody">
-                                    <!-- Users will be populated here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- System Statistics -->
-                    <div class="admin-stats-grid">
-                        <div class="admin-stat-card">
-                            <div class="admin-stat-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div class="admin-stat-info">
-                                <div class="admin-stat-value" id="totalUsers">0</div>
-                                <div class="admin-stat-label">Total Users</div>
-                            </div>
-                        </div>
-                        <div class="admin-stat-card">
-                            <div class="admin-stat-icon">
-                                <i class="fas fa-folder"></i>
-                            </div>
-                            <div class="admin-stat-info">
-                                <div class="admin-stat-value" id="totalFilesAll">0</div>
-                                <div class="admin-stat-label">Total Files</div>
-                            </div>
-                        </div>
-                        <div class="admin-stat-card">
-                            <div class="admin-stat-icon">
-                                <i class="fas fa-hdd"></i>
-                            </div>
-                            <div class="admin-stat-info">
-                                <div class="admin-stat-value" id="totalStorageAll">0 GB</div>
-                                <div class="admin-stat-label">Total Storage Used</div>
-                            </div>
-                        </div>
-                        <div class="admin-stat-card">
-                            <div class="admin-stat-icon">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <div class="admin-stat-info">
-                                <div class="admin-stat-value" id="avgStoragePerUser">0 GB</div>
-                                <div class="admin-stat-label">Avg Storage/User</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Global Settings -->
-                    <div class="admin-card">
-                        <h2><i class="fas fa-cogs"></i> Global Settings</h2>
-                        <div class="settings-form">
-                            <div class="setting-group">
-                                <label for="defaultStorageLimit">Default Storage Limit (GB)</label>
-                                <input type="number" id="defaultStorageLimit" value="10" min="1" max="1000">
-                            </div>
-                            <div class="setting-group">
-                                <label for="maxFileSize">Max File Size (MB)</label>
-                                <input type="number" id="maxFileSize" value="100" min="1" max="10000">
-                            </div>
-                            <div class="setting-group">
-                                <label for="allowedFileTypes">Allowed File Types</label>
-                                <input type="text" id="allowedFileTypes" value="jpg,jpeg,png,gif,pdf,doc,docx,txt,zip" placeholder="comma-separated">
-                            </div>
-                            <button class="login-btn" onclick="saveGlobalSettings()">
-                                <i class="fas fa-save"></i> Save Settings
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -1513,11 +1263,11 @@
         function showDashboard() {
             hideLoadingScreen();
             document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('dashboardPage').style.display = 'flex';
+            document.getElementById('dashboardPage').style.display = 'block';
             updateStatistics();
-            displayFiles();
-            initMenuNavigation(); // Initialize menu navigation
+            // Initialize sidebar and menu navigation after dashboard is shown
             initSidebarToggle();
+            initMenuNavigation();
         }
 
         // Sidebar toggle
@@ -1539,27 +1289,25 @@
 
         // Menu navigation - will be initialized after DOM is loaded
         function initMenuNavigation() {
-            const menuItems = document.querySelectorAll('.menu-item[data-page]');
+            const menuItems = document.querySelectorAll('.menu-item');
+            if (!menuItems.length) {
+                console.warn('No menu items found for navigation');
+                return;
+            }
+            
             menuItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    // Remove active class from all items
-                    menuItems.forEach(mi => mi.classList.remove('active'));
-                    // Add active class to clicked item
-                    this.classList.add('active');
-                    
-                    // Hide all sections first
-                    document.getElementById('dashboardSection').style.display = 'none';
-                    document.getElementById('filesSection').style.display = 'none';
-                    document.getElementById('adminSection').style.display = 'none';
-                    
-                    // Show corresponding section
-                    const page = this.getAttribute('data-page');
+                item.addEventListener('click', () => {
+                    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+                    item.classList.add('active');
+
+                    const page = item.getAttribute('data-page');
                     if (page === 'dashboard') {
                         document.getElementById('dashboardSection').style.display = 'block';
+                        document.getElementById('filesSection').classList.remove('active');
                         updateStatistics();
                     } else if (page === 'files') {
-                        document.getElementById('filesSection').style.display = 'block';
-                        displayFiles();
+                        document.getElementById('dashboardSection').style.display = 'none';
+                        document.getElementById('filesSection').classList.add('active');
                     }
                 });
             });
@@ -2476,185 +2224,8 @@
             window.location.href = window.location.pathname;
         }
 
-        // Admin functions
-        function showAdminSection() {
-            document.getElementById('dashboardSection').style.display = 'none';
-            document.getElementById('filesSection').style.display = 'none';
-            document.getElementById('adminSection').style.display = 'block';
-            
-            // Update active menu item
-            document.querySelectorAll('.menu-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            document.getElementById('adminBtn').classList.add('active');
-            
-            // Load admin data
-            loadAdminData();
-        }
-
-        async function loadAdminData() {
-            try {
-                // Load users data
-                await loadUsersData();
-                // Load system statistics
-                await loadSystemStatistics();
-            } catch (error) {
-                console.error('Error loading admin data:', error);
-            }
-        }
-
-        async function loadUsersData() {
-            const usersTableBody = document.getElementById('usersTableBody');
-            usersTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Loading users...</td></tr>';
-            
-            try {
-                // This would typically call an API to get user data
-                // For now, we'll create mock data
-                const mockUsers = [
-                    { username: 'Zeke', fileCount: 25, totalSize: 2.5, storageLimit: 10 },
-                    { username: 'John', fileCount: 12, totalSize: 1.2, storageLimit: 5 },
-                    { username: 'Sarah', fileCount: 8, totalSize: 0.8, storageLimit: 5 },
-                    { username: 'Mike', fileCount: 15, totalSize: 3.1, storageLimit: 10 }
-                ];
-                
-                usersTableBody.innerHTML = '';
-                mockUsers.forEach(user => {
-                    const usagePercent = ((user.totalSize / user.storageLimit) * 100).toFixed(1);
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${user.username}</td>
-                        <td>${user.fileCount}</td>
-                        <td>${user.totalSize.toFixed(2)} GB</td>
-                        <td>${user.storageLimit} GB</td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="flex: 1; background: #444; border-radius: 3px; height: 6px; overflow: hidden;">
-                                    <div style="width: ${Math.min(usagePercent, 100)}%; height: 100%; background: ${usagePercent > 80 ? '#dc3545' : usagePercent > 60 ? '#ffc107' : '#28a745'};"></div>
-                                </div>
-                                <span style="font-size: 11px; color: #ccc;">${usagePercent}%</span>
-                            </div>
-                        </td>
-                        <td>
-                            <button class="action-btn-small edit-btn" onclick="editUser('${user.username}')">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="action-btn-small delete-user-btn" onclick="deleteUser('${user.username}')">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </td>
-                    `;
-                    usersTableBody.appendChild(row);
-                });
-                
-                // Update total users count
-                document.getElementById('totalUsers').textContent = mockUsers.length;
-                
-            } catch (error) {
-                usersTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;">Error loading users</td></tr>';
-            }
-        }
-
-        async function loadSystemStatistics() {
-            try {
-                // Mock data for system statistics
-                const totalFilesAll = 60;
-                const totalStorageAll = 7.6;
-                const totalUsers = 4;
-                const avgStoragePerUser = totalStorageAll / totalUsers;
-                
-                document.getElementById('totalFilesAll').textContent = totalFilesAll;
-                document.getElementById('totalStorageAll').textContent = totalStorageAll.toFixed(1) + ' GB';
-                document.getElementById('avgStoragePerUser').textContent = avgStoragePerUser.toFixed(1) + ' GB';
-                
-            } catch (error) {
-                console.error('Error loading system statistics:', error);
-            }
-        }
-
-        function editUser(username) {
-            // This would open an edit modal for the user
-            alert(`Edit user: ${username}\n(This would open an edit modal)`);
-        }
-
-        function deleteUser(username) {
-            if (username === 'Zeke') {
-                alert('Cannot delete the admin user!');
-                return;
-            }
-            
-            if (confirm(`Are you sure you want to delete user "${username}"? This will also delete all their files.`)) {
-                // This would call an API to delete the user
-                alert(`User "${username}" deleted (mock)`);
-                loadUsersData(); // Reload the users list
-            }
-        }
-
-        function saveGlobalSettings() {
-            const defaultStorageLimit = document.getElementById('defaultStorageLimit').value;
-            const maxFileSize = document.getElementById('maxFileSize').value;
-            const allowedFileTypes = document.getElementById('allowedFileTypes').value;
-            
-            // This would save the settings to the server
-            alert('Settings saved (mock):\n' +
-                  `Default Storage Limit: ${defaultStorageLimit} GB\n` +
-                  `Max File Size: ${maxFileSize} MB\n` +
-                  `Allowed File Types: ${allowedFileTypes}`);
-        }
-
-        // Check if user is admin and show admin button
-        function checkAdminAccess() {
-            const currentUser = getCookie('ada_current_user');
-            const adminBtn = document.getElementById('adminBtn');
-            
-            if (currentUser === 'Zeke' && adminBtn) {
-                adminBtn.style.display = 'block';
-                
-                // Add event listener for admin button
-                adminBtn.addEventListener('click', showAdminSection);
-            }
-        }
-
-        // Check for existing login on page load
-        window.addEventListener('DOMContentLoaded', async () => {
-            logMsg('Page load: checking auth cookies');
-            const loginToken = getCookie('ada_login_token');
-            const currentUser = getCookie('ada_current_user');
-            
-            if (loginToken && currentUser) {
-                logMsg('Found cookies, validating token');
-                try {
-                    const response = await fetch('https://n8n.tail851803.ts.net/webhook/validate-token', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ user: currentUser, token: loginToken })
-                    });
-                    
-                    if (response.ok) {
-                        const result = await response.json();
-                        if (result.valid) {
-                            logMsg('Token valid, showing dashboard');
-                            showDashboard();
-                            // Check admin access after dashboard is shown
-                            checkAdminAccess();
-                        } else {
-                            logMsg('Token invalid, clearing cookies');
-                            deleteCookie('ada_login_token');
-                            deleteCookie('ada_current_user');
-                        }
-                    } else {
-                        logMsg('Token validation failed, clearing cookies');
-                        deleteCookie('ada_login_token');
-                        deleteCookie('ada_current_user');
-                    }
-                } catch (error) {
-                    logMsg(`Token validation error: ${error.message}`, 'error');
-                    deleteCookie('ada_login_token');
-                    deleteCookie('ada_current_user');
-                }
-            } else {
-                logMsg('No auth cookies found');
-            }
-            
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
             // Add logout button event listener
             const logoutBtn = document.getElementById('logoutBtn');
             const confirmLogoutBtn = document.getElementById('confirmLogout');
@@ -2680,6 +2251,14 @@
                         hideLogoutConfirmation();
                     }
                 });
+            }
+
+            // Only run these if we're on a page with these elements
+            if (document.getElementById('filesList')) {
+                displayFiles();
+            }
+            if (document.getElementById('totalFiles')) {
+                updateStatistics();
             }
         });
     </script>
