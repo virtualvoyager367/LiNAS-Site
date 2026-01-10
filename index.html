@@ -1625,7 +1625,7 @@
                 // Create form to POST to webhook
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = 'https://n8n.tail851803.ts.net/webhook/59425019-027f-4548-8fa7-c955c4c4c61822';
+                form.action = 'https://n8n.tail851803.ts.net/webhook/2fb8baa8-09dd-48bf-b76b-61433eb697c7';
                 form.target = iframe.name;
 
                 // Add form data
@@ -1694,6 +1694,14 @@
                         console.log('Iframe loaded successfully');
                         console.log('Iframe src:', iframe.src);
                         console.log('Iframe readyState:', iframe.readyState);
+                        
+                        // Check if iframe loaded an error page (empty src often indicates error)
+                        if (!iframe.src || iframe.src === 'about:blank') {
+                            console.log('Iframe src is blank, likely due to HTTP error');
+                            cleanup();
+                            reject(new Error('Webhook returned HTTP error (500) - check webhook server logs'));
+                            return;
+                        }
                         
                         // Try to access iframe content to extract link directly (same origin fallback)
                         try {
