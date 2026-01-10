@@ -1513,11 +1513,11 @@
         function showDashboard() {
             hideLoadingScreen();
             document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('dashboardPage').style.display = 'block';
+            document.getElementById('dashboardPage').style.display = 'flex';
             updateStatistics();
-            // Initialize sidebar and menu navigation after dashboard is shown
+            displayFiles();
+            initMenuNavigation(); // Initialize menu navigation
             initSidebarToggle();
-            initMenuNavigation();
         }
 
         // Sidebar toggle
@@ -1539,25 +1539,27 @@
 
         // Menu navigation - will be initialized after DOM is loaded
         function initMenuNavigation() {
-            const menuItems = document.querySelectorAll('.menu-item');
-            if (!menuItems.length) {
-                console.warn('No menu items found for navigation');
-                return;
-            }
-            
+            const menuItems = document.querySelectorAll('.menu-item[data-page]');
             menuItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-                    item.classList.add('active');
-
-                    const page = item.getAttribute('data-page');
+                item.addEventListener('click', function() {
+                    // Remove active class from all items
+                    menuItems.forEach(mi => mi.classList.remove('active'));
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Hide all sections first
+                    document.getElementById('dashboardSection').style.display = 'none';
+                    document.getElementById('filesSection').style.display = 'none';
+                    document.getElementById('adminSection').style.display = 'none';
+                    
+                    // Show corresponding section
+                    const page = this.getAttribute('data-page');
                     if (page === 'dashboard') {
                         document.getElementById('dashboardSection').style.display = 'block';
-                        document.getElementById('filesSection').classList.remove('active');
                         updateStatistics();
                     } else if (page === 'files') {
-                        document.getElementById('dashboardSection').style.display = 'none';
-                        document.getElementById('filesSection').classList.add('active');
+                        document.getElementById('filesSection').style.display = 'block';
+                        displayFiles();
                     }
                 });
             });
@@ -2612,10 +2614,46 @@
             }
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check admin access
-            checkAdminAccess();
+        // Check for existing login on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            logMsg('Page load: checking auth cookies');
+            const loginToken = getCookie('ada_login_token');
+            const currentUser = getCookie('ada_current_user');
+            
+            if (loginToken && currentUser) {
+                logMsg('Found cookies, validating token');
+                try {
+                    const response = await fetch('https://n8n.tail851803.ts.net/webhook/validate-token', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user: currentUser, token: loginToken })
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.valid) {
+                            logMsg('Token valid, showing dashboard');
+                            showDashboard();
+                            // Check admin access after dashboard is shown
+                            checkAdminAccess();
+                        } else {
+                            logMsg('Token invalid, clearing cookies');
+                            deleteCookie('ada_login_token');
+                            deleteCookie('ada_current_user');
+                        }
+                    } else {
+                        logMsg('Token validation failed, clearing cookies');
+                        deleteCookie('ada_login_token');
+                        deleteCookie('ada_current_user');
+                    }
+                } catch (error) {
+                    logMsg(`Token validation error: ${error.message}`, 'error');
+                    deleteCookie('ada_login_token');
+                    deleteCookie('ada_current_user');
+                }
+            } else {
+                logMsg('No auth cookies found');
+            }
             
             // Add logout button event listener
             const logoutBtn = document.getElementById('logoutBtn');
@@ -2642,14 +2680,6 @@
                         hideLogoutConfirmation();
                     }
                 });
-            }
-
-            // Only run these if we're on a page with these elements
-            if (document.getElementById('filesList')) {
-                displayFiles();
-            }
-            if (document.getElementById('totalFiles')) {
-                updateStatistics();
             }
         });
     </script>
