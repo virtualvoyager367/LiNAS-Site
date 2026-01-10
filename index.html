@@ -1469,7 +1469,7 @@
                             <button class="action-btn download-btn" onclick="downloadFile(${file.id}, '${file.Filename.replace(/'/g, "\\'")}', '${String(file.Filesize || '').replace(/'/g, "\\'")}', event)">
                                 <i class="fas fa-download"></i> Download
                             </button>
-                            <button class="action-btn link-btn" onclick="generateDownloadLink(${file.id})">
+                            <button class="action-btn link-btn" onclick="generateDownloadLink(${file.id}, '${file.Filename.replace(/'/g, "\\'")}', event)">
                                 <i class="fas fa-link"></i> Share
                             </button>
                         </div>
@@ -1583,8 +1583,138 @@
         }
 
         async function generateDownloadLink(fileId) {
-            alert('Download link generation needs to be implemented on the server side');
-            // to generate a download link for the file with the given fileId
+            // Backwards-compatible wrapper in case any older call sites still pass only fileId
+            return generateDownloadLink(fileId, null, null);
+        }
+
+        async function generateDownloadLink(fileId, filename, event) {
+            const linkContainer = document.getElementById(`link-${fileId}`);
+            const linkInput = document.getElementById(`link-input-${fileId}`);
+            const shareBtn = event ? event.target.closest('.link-btn') : null;
+            let originalBtnText = '';
+
+            try {
+                const currentUser = getCookie('ada_current_user');
+                const loginToken = getCookie('ada_login_token');
+
+                if (!currentUser || !loginToken) {
+                    alert('Please log in to generate download links');
+                    return;
+                }
+
+                if (!filename) {
+                    throw new Error('Missing filename for link generation');
+                }
+
+                if (shareBtn) {
+                    originalBtnText = shareBtn.innerHTML;
+                    shareBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+                    shareBtn.disabled = true;
+                }
+
+                // Create iframe to load the API response
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.style.width = '1px';
+                iframe.style.height = '1px';
+                document.body.appendChild(iframe);
+
+                // Create form to submit to iframe
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'https://n8n.tail851803.ts.net/webhook/59425019-027f-4548-8fa7-c955c4c4c61822';
+                form.target = iframe.name;
+
+                const formData = new FormData();
+                formData.append('user', currentUser);
+                formData.append('token', loginToken);
+                formData.append('filename', filename);
+
+                // Convert FormData to hidden inputs
+                for (const [key, value] of formData.entries()) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = value;
+                    form.appendChild(input);
+                }
+
+                // Submit form and wait for iframe to load
+                iframe.name = `iframe-${Date.now()}`;
+                form.target = iframe.name;
+                document.body.appendChild(form);
+                form.submit();
+
+                const link = await new Promise((resolve, reject) => {
+                    iframe.onload = () => {
+                        try {
+                            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                            const iframeContent = iframeDoc.body.innerText || iframeDoc.body.textContent;
+                            
+                            let link = '';
+                            
+                            // Try to parse as JSON first
+                            try {
+                                const data = JSON.parse(iframeContent);
+                                link = data?.link || data?.url || data?.downloadUrl || data?.download_link || '';
+                                if (!link && typeof data === 'string') link = data;
+                                if (!link && Array.isArray(data) && data.length) {
+                                    const first = data[0];
+                                    link = first?.link || first?.url || first?.downloadUrl || '';
+                                }
+                            } catch (_) {
+                                // If not JSON, extract URL using regex
+                                const match = iframeContent.match(/https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+/i);
+                                link = match ? match[0] : '';
+                            }
+
+                            // Clean up
+                            document.body.removeChild(form);
+                            document.body.removeChild(iframe);
+
+                            if (!link) {
+                                reject(new Error('No link found in iframe response'));
+                            } else {
+                                resolve(link);
+                            }
+                        } catch (error) {
+                            // Clean up on error
+                            try {
+                                document.body.removeChild(form);
+                                document.body.removeChild(iframe);
+                            } catch (_) {}
+                            reject(error);
+                        }
+                    };
+
+                    iframe.onerror = () => {
+                        try {
+                            document.body.removeChild(form);
+                            document.body.removeChild(iframe);
+                        } catch (_) {}
+                        reject(new Error('Failed to load iframe response'));
+                    };
+                });
+
+                if (!link) {
+                    throw new Error('No link returned from server');
+                }
+
+                if (linkInput) {
+                    linkInput.value = link;
+                }
+                if (linkContainer) {
+                    linkContainer.style.display = 'flex';
+                }
+            } catch (error) {
+                console.error('Error generating download link:', error);
+                alert('Failed to generate download link: ' + (error.message || 'Unknown error'));
+            } finally {
+                if (shareBtn) {
+                    shareBtn.innerHTML = originalBtnText || '<i class="fas fa-link"></i> Share';
+                    shareBtn.disabled = false;
+                }
+            }
         }
 
         function copyLink(fileId) {
