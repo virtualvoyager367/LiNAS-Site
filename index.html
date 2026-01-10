@@ -366,6 +366,43 @@
             background: #5568d3;
         }
 
+        .progress-container {
+            margin: 10px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.2s ease;
+        }
+
+        .cancel-btn {
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cancel-btn:hover {
+            background-color: #ff5252;
+        }
+
         #fileInput {
             display: none;
         }
@@ -627,9 +664,29 @@
                         <h1>Files</h1>
                     </div>
                     <div class="content-body">
-                        <div class="upload-area">
+                        <div class="upload-area" id="uploadContainer">
                             <input type="file" id="fileInput" multiple>
-                            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Upload Files</button>
+                            <button id="selectFilesBtn" class="upload-btn">
+                                <i class="fas fa-upload"></i> Select Files
+                            </button>
+                            <div id="uploadProgress" style="display: none; margin-top: 10px;">
+                                <div class="progress-container">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="loadProgress" style="width: 0%;"></div>
+                                    </div>
+                                    <span id="loadStatus">Preparing: 0%</span>
+                                </div>
+                                <div class="progress-container" style="margin-top: 5px;">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="uploadProgressBar" style="width: 0%;"></div>
+                                    </div>
+                                    <span id="uploadStatus">Uploading: 0%</span>
+                                </div>
+                                <div id="fileInfo" style="margin-top: 10px; color: #666;"></div>
+                                <button id="cancelUpload" class="cancel-btn" style="margin-top: 10px; display: none;">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                            </div>
                         </div>
                         <div class="files-list" id="filesList">
                             <div style="padding: 20px; text-align: center; color: #666;">
@@ -1073,116 +1130,211 @@
         }
 
         // File upload handler
-        document.getElementById('fileInput').addEventListener('change', async (e) => {
-            const fileList = e.target.files;
-            const uploadArea = document.querySelector('.upload-area');
-            const originalHTML = uploadArea.innerHTML;
-            
-            try {
-                for (let i = 0; i < fileList.length; i++) {
-                    const file = fileList[i];
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    
-                    // Get current user and token from cookies
+        (function() {
+            const fileInput = document.getElementById('fileInput');
+            const selectFilesBtn = document.getElementById('selectFilesBtn');
+            const uploadProgress = document.getElementById('uploadProgress');
+            const loadProgress = document.getElementById('loadProgress');
+            const uploadProgressBar = document.getElementById('uploadProgressBar');
+            const loadStatus = document.getElementById('loadStatus');
+            const uploadStatus = document.getElementById('uploadStatus');
+            const fileInfo = document.getElementById('fileInfo');
+            const cancelUploadBtn = document.getElementById('cancelUpload');
+
+            let currentXhr = null;
+            let isUploading = false;
+
+            function setPrepareProgress(pct) {
+                if (loadProgress) loadProgress.style.width = `${pct}%`;
+                if (loadStatus) loadStatus.textContent = `Preparing: ${Math.round(pct)}%`;
+            }
+
+            function setUploadProgress(pct) {
+                if (uploadProgressBar) uploadProgressBar.style.width = `${pct}%`;
+                if (uploadStatus) uploadStatus.textContent = `Uploading: ${Math.round(pct)}%`;
+            }
+
+            function setFileInfo(text, color) {
+                if (!fileInfo) return;
+                fileInfo.textContent = text;
+                fileInfo.style.color = color || '#666';
+            }
+
+            function showUploadProgress() {
+                if (uploadProgress) uploadProgress.style.display = 'block';
+                if (cancelUploadBtn) cancelUploadBtn.style.display = 'inline-flex';
+                setPrepareProgress(0);
+                setUploadProgress(0);
+            }
+
+            function hideCancel() {
+                if (cancelUploadBtn) cancelUploadBtn.style.display = 'none';
+            }
+
+            function parseIframeHtmlResult(responseText) {
+                const tempIframe = document.createElement('iframe');
+                tempIframe.style.display = 'none';
+                document.body.appendChild(tempIframe);
+
+                const doc = tempIframe.contentDocument || tempIframe.contentWindow.document;
+                doc.open();
+                doc.write(responseText);
+                doc.close();
+
+                const bodyText = (doc.body && doc.body.textContent) ? doc.body.textContent : '';
+                const success = bodyText.toLowerCase().includes('success');
+                document.body.removeChild(tempIframe);
+                return { success, bodyText };
+            }
+
+            function animatePrepare() {
+                return new Promise(resolve => {
+                    const start = performance.now();
+                    const duration = 450;
+
+                    function tick(now) {
+                        const t = Math.min(1, (now - start) / duration);
+                        setPrepareProgress(t * 100);
+                        if (t < 1) {
+                            requestAnimationFrame(tick);
+                        } else {
+                            resolve();
+                        }
+                    }
+
+                    requestAnimationFrame(tick);
+                });
+            }
+
+            function uploadFileXhr(file) {
+                return new Promise((resolve, reject) => {
                     const currentUser = getCookie('ada_current_user');
                     const loginToken = getCookie('ada_login_token');
-                    
+
+                    if (!currentUser || !loginToken) {
+                        reject(new Error('Please log in to upload files'));
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('file', file);
                     formData.append('user', currentUser);
                     formData.append('token', loginToken);
-                    
-                    // Show upload progress
-                    uploadArea.innerHTML = `
-                        <div style="text-align: center; padding: 20px;">
-                            <div>Uploading ${file.name}...</div>
-                            <progress value="0" max="100" style="width: 100%; margin: 10px 0;"></progress>
-                            <div class="upload-status">Starting upload...</div>
-                        </div>
-                    `;
-                    
-                    const progressBar = uploadArea.querySelector('progress');
-                    const statusDiv = uploadArea.querySelector('.upload-status');
-                    
-                    try {
-                        const response = await fetch('https://n8n.tail851803.ts.net/webhook/640a0f98-a3b8-4e59-8e5f-2f872beeb194', {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'Accept': 'text/html' // Expecting HTML response in iframe
+
+                    const xhr = new XMLHttpRequest();
+                    currentXhr = xhr;
+
+                    xhr.open('POST', 'https://n8n.tail851803.ts.net/webhook/640a0f98-a3b8-4e59-8e5f-2f872beeb194', true);
+                    xhr.setRequestHeader('Accept', 'text/html');
+
+                    let uploadStarted = false;
+                    xhr.upload.onprogress = (evt) => {
+                        if (!uploadStarted) {
+                            uploadStarted = true;
+                            setPrepareProgress(100);
+                        }
+                        if (evt.lengthComputable) {
+                            const pct = (evt.loaded / evt.total) * 100;
+                            setUploadProgress(pct);
+                        }
+                    };
+
+                    xhr.onload = () => {
+                        currentXhr = null;
+                        setPrepareProgress(100);
+                        if (xhr.status < 200 || xhr.status >= 300) {
+                            reject(new Error(`HTTP error! status: ${xhr.status}`));
+                            return;
+                        }
+
+                        try {
+                            const { success, bodyText } = parseIframeHtmlResult(xhr.responseText || '');
+                            if (success) {
+                                setUploadProgress(100);
+                                resolve();
+                            } else {
+                                reject(new Error('Upload failed: ' + (bodyText || 'Unknown error')));
                             }
-                        });
-                        
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
+                        } catch (err) {
+                            reject(err);
                         }
-                        
-                        // Get response as text to handle iframe content
-                        const responseText = await response.text();
-                        
-                        // Create a temporary iframe to parse the response
-                        const tempIframe = document.createElement('iframe');
-                        tempIframe.style.display = 'none';
-                        document.body.appendChild(tempIframe);
-                        
-                        // Write the response to the iframe
-                        tempIframe.contentDocument.open();
-                        tempIframe.contentDocument.write(responseText);
-                        tempIframe.contentDocument.close();
-                        
-                        // Extract the success/failure message from the iframe
-                        const iframeDoc = tempIframe.contentDocument || tempIframe.contentWindow.document;
-                        const success = iframeDoc.body.textContent.includes('success');
-                        
-                        // Clean up
-                        document.body.removeChild(tempIframe);
-                        
-                        if (success) {
-                            statusDiv.textContent = 'Upload successful!';
-                            statusDiv.style.color = 'green';
-                            progressBar.value = 100;
-                        } else {
-                            throw new Error('Upload failed: ' + (iframeDoc.body.textContent || 'Unknown error'));
-                        }
-                        
-                    } catch (error) {
-                        console.error('Upload error:', error);
-                        statusDiv.textContent = `Upload failed: ${error.message}`;
-                        statusDiv.style.color = 'red';
-                        throw error; // Re-throw to be caught by outer try-catch
-                    }
-                    
-                    // Small delay between uploads
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    };
+
+                    xhr.onerror = () => {
+                        currentXhr = null;
+                        setPrepareProgress(100);
+                        reject(new Error('Network error during upload'));
+                    };
+
+                    xhr.onabort = () => {
+                        currentXhr = null;
+                        setPrepareProgress(100);
+                        const abortErr = new Error('Upload cancelled');
+                        abortErr.name = 'AbortError';
+                        reject(abortErr);
+                    };
+
+                    xhr.send(formData);
+                });
+            }
+
+            async function handleFileSelect(e) {
+                const files = Array.from(e.target.files || []);
+                if (files.length === 0) return;
+
+                if (isUploading) {
+                    e.target.value = '';
+                    return;
                 }
-                
-                // Refresh file list after all uploads
-                displayFiles();
-                updateStatistics();
-                
-            } catch (error) {
-                console.error('Error during file upload:', error);
-                // Show error message
-                uploadArea.innerHTML = `
-                    <div style="color: red; text-align: center; padding: 20px;">
-                        Error: ${error.message}
-                        <button onclick="location.reload()" style="margin-top: 10px; padding: 5px 10px;">Try Again</button>
-                    </div>
-                `;
-                return;
-            } finally {
-                // Reset file input
-                e.target.value = '';
-                
-                // Restore original upload area after a delay if not already showing an error
-                if (!uploadArea.innerHTML.includes('Error:')) {
-                    setTimeout(() => {
-                        uploadArea.innerHTML = originalHTML;
-                        // Re-attach event listeners if needed
-                        document.querySelector('.upload-btn').onclick = () => document.getElementById('fileInput').click();
-                    }, 2000);
+
+                isUploading = true;
+                if (selectFilesBtn) selectFilesBtn.disabled = true;
+
+                try {
+                    for (const file of files) {
+                        showUploadProgress();
+                        setFileInfo(`Uploading ${file.name}...`, '#666');
+
+                        await animatePrepare();
+                        setUploadProgress(0);
+
+                        await uploadFileXhr(file);
+                        setFileInfo('Upload successful!', 'green');
+
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+
+                    displayFiles();
+                    updateStatistics();
+                } catch (error) {
+                    console.error('Error during file upload:', error);
+                    if (error && error.name === 'AbortError') {
+                        setFileInfo('Upload cancelled', '#666');
+                    } else {
+                        setFileInfo(`Upload failed: ${error.message}`, 'red');
+                    }
+                } finally {
+                    hideCancel();
+                    if (selectFilesBtn) selectFilesBtn.disabled = false;
+                    isUploading = false;
+                    e.target.value = '';
                 }
             }
-        });
+
+            if (selectFilesBtn && fileInput) {
+                selectFilesBtn.addEventListener('click', () => fileInput.click());
+            }
+
+            if (fileInput) {
+                fileInput.addEventListener('change', handleFileSelect);
+            }
+
+            if (cancelUploadBtn) {
+                cancelUploadBtn.addEventListener('click', () => {
+                    if (currentXhr) currentXhr.abort();
+                });
+            }
+        })();
 
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 Bytes';
@@ -1317,44 +1469,53 @@
                     downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
                     downloadBtn.disabled = true;
                 }
-        
-        const response = await fetch('https://n8n.tail851803.ts.net/webhook/f5c453e5-24ca-4be1-9c69-3d32cda4bcb6', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                user: currentUser,
-                token: loginToken,
-                filename: filename
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Failed to download file: ${response.status} ${response.statusText}`);
+
+                const response = await fetch('https://n8n.tail851803.ts.net/webhook/f5c453e5-24ca-4be1-9c69-3d32cda4bcb6', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user: currentUser,
+                        token: loginToken,
+                        filename: filename
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to download file: ${response.status} ${response.statusText}`);
+                }
+
+                const canStreamToDisk = !!(window.showSaveFilePicker && response.body && response.body.pipeTo);
+                if (canStreamToDisk) {
+                    const fileHandle = await window.showSaveFilePicker({
+                        suggestedName: filename
+                    });
+                    const writable = await fileHandle.createWritable();
+                    await response.body.pipeTo(writable);
+                    return;
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                console.error('Error downloading file:', error);
+                alert('Failed to download file: ' + (error.message || 'Unknown error'));
+            } finally {
+                if (downloadBtn) {
+                    downloadBtn.innerHTML = originalText || '<i class="fas fa-download"></i> Download';
+                    downloadBtn.disabled = false;
+                }
+            }
         }
-        
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-    } catch (error) {
-        console.error('Error downloading file:', error);
-        alert('Failed to download file: ' + (error.message || 'Unknown error'));
-    } finally {
-        if (downloadBtn) {
-            downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
-            downloadBtn.disabled = false;
-        }
-    }
-}
 
         async function generateDownloadLink(fileId) {
             alert('Download link generation needs to be implemented on the server side');
