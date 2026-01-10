@@ -1612,45 +1612,84 @@
                     shareBtn.disabled = true;
                 }
 
-                // Create iframe to load the API response
+                // Create a hidden iframe to handle the webhook response
                 const iframe = document.createElement('iframe');
                 iframe.style.display = 'none';
                 iframe.style.width = '1px';
                 iframe.style.height = '1px';
+                iframe.name = `webhook-iframe-${Date.now()}`;
                 document.body.appendChild(iframe);
 
-                // Create form to submit to iframe
+                // Create form to POST to webhook
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = 'https://n8n.tail851803.ts.net/webhook/59425019-027f-4548-8fa7-c955c4c4c61822';
                 form.target = iframe.name;
 
-                const formData = new FormData();
-                formData.append('user', currentUser);
-                formData.append('token', loginToken);
-                formData.append('filename', filename);
+                // Add form data
+                const userField = document.createElement('input');
+                userField.type = 'hidden';
+                userField.name = 'user';
+                userField.value = currentUser;
+                form.appendChild(userField);
 
-                // Convert FormData to hidden inputs
-                for (const [key, value] of formData.entries()) {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = key;
-                    input.value = value;
-                    form.appendChild(input);
-                }
+                const tokenField = document.createElement('input');
+                tokenField.type = 'hidden';
+                tokenField.name = 'token';
+                tokenField.value = loginToken;
+                form.appendChild(tokenField);
 
-                // Submit form and wait for iframe to load
-                iframe.name = `iframe-${Date.now()}`;
-                form.target = iframe.name;
+                const filenameField = document.createElement('input');
+                filenameField.type = 'hidden';
+                filenameField.name = 'filename';
+                filenameField.value = filename;
+                form.appendChild(filenameField);
+
                 document.body.appendChild(form);
-                form.submit();
 
                 const link = await new Promise((resolve, reject) => {
-                    iframe.onload = () => {
+                    // Set up timeout to handle cases where iframe doesn't load
+                    const timeout = setTimeout(() => {
+                        cleanup();
+                        reject(new Error('Webhook request timed out'));
+                    }, 10000);
+
+                    function cleanup() {
+                        clearTimeout(timeout);
                         try {
-                            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                            const iframeContent = iframeDoc.body.innerText || iframeDoc.body.textContent;
-                            
+                            if (form && form.parentNode) {
+                                form.parentNode.removeChild(form);
+                            }
+                            if (iframe && iframe.parentNode) {
+                                iframe.parentNode.removeChild(iframe);
+                            }
+                        } catch (_) {}
+                    }
+
+                    iframe.onload = function() {
+                        try {
+                            // Check if we can access the iframe content
+                            let iframeDoc;
+                            try {
+                                iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                            } catch (e) {
+                                // Cross-origin access blocked, try alternative approach
+                                cleanup();
+                                reject(new Error('Cannot access webhook response due to cross-origin restrictions'));
+                                return;
+                            }
+
+                            // Get the response content
+                            const iframeContent = iframeDoc.body ? 
+                                (iframeDoc.body.innerText || iframeDoc.body.textContent) : 
+                                '';
+
+                            if (!iframeContent) {
+                                cleanup();
+                                reject(new Error('Empty response from webhook'));
+                                return;
+                            }
+
                             let link = '';
                             
                             // Try to parse as JSON first
@@ -1668,32 +1707,26 @@
                                 link = match ? match[0] : '';
                             }
 
-                            // Clean up
-                            document.body.removeChild(form);
-                            document.body.removeChild(iframe);
+                            cleanup();
 
                             if (!link) {
-                                reject(new Error('No link found in iframe response'));
+                                reject(new Error('No download link found in webhook response'));
                             } else {
                                 resolve(link);
                             }
                         } catch (error) {
-                            // Clean up on error
-                            try {
-                                document.body.removeChild(form);
-                                document.body.removeChild(iframe);
-                            } catch (_) {}
-                            reject(error);
+                            cleanup();
+                            reject(new Error('Failed to process webhook response: ' + error.message));
                         }
                     };
 
-                    iframe.onerror = () => {
-                        try {
-                            document.body.removeChild(form);
-                            document.body.removeChild(iframe);
-                        } catch (_) {}
-                        reject(new Error('Failed to load iframe response'));
+                    iframe.onerror = function() {
+                        cleanup();
+                        reject(new Error('Failed to load webhook response'));
                     };
+
+                    // Submit the form
+                    form.submit();
                 });
 
                 if (!link) {
