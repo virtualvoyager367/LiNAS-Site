@@ -1650,7 +1650,7 @@
                 document.body.appendChild(form);
 
                 const link = await new Promise((resolve, reject) => {
-                    // Set up timeout to handle cases where iframe doesn't load
+                    // Set up timeout
                     const timeout = setTimeout(() => {
                         cleanup();
                         reject(new Error('Webhook request timed out'));
@@ -1658,8 +1658,6 @@
 
                     function cleanup() {
                         clearTimeout(timeout);
-                        // Remove event listener
-                        window.removeEventListener('message', handleMessage);
                         try {
                             if (form && form.parentNode) {
                                 form.parentNode.removeChild(form);
@@ -1670,83 +1668,33 @@
                         } catch (_) {}
                     }
 
-                    // Listen for messages from the iframe
-                    function handleMessage(event) {
-                        // Only accept messages from the webhook domain
-                        if (event.origin !== 'https://n8n.tail851803.ts.net') {
-                            return;
-                        }
-
-                        if (event.data && event.data.type === 'downloadLink') {
-                            cleanup();
-                            if (event.data.link) {
-                                resolve(event.data.link);
-                            } else {
-                                reject(new Error('No download link received from iframe'));
-                            }
-                        }
-                    }
-
-                    // Add message listener
-                    window.addEventListener('message', handleMessage);
-
                     iframe.onload = function() {
                         console.log('Iframe loaded successfully');
                         console.log('Iframe src:', iframe.src);
-                        console.log('Iframe readyState:', iframe.readyState);
                         
-                        // Check if iframe loaded an error page or redirect
-                        if (!iframe.src || iframe.src === 'about:blank') {
-                            console.log('Iframe src is blank, checking for redirect');
-                            
-                            // Try to get the actual URL from iframe contentWindow (handles redirects)
-                            try {
-                                const iframeWindow = iframe.contentWindow;
-                                const actualUrl = iframeWindow.location.href;
-                                
-                                if (actualUrl && actualUrl !== 'about:blank' && actualUrl !== window.location.href) {
-                                    console.log('Found redirect URL:', actualUrl);
-                                    cleanup();
-                                    resolve(actualUrl);
-                                    return;
-                                }
-                            } catch (e) {
-                                console.log('Cannot access iframe location due to cross-origin:', e.message);
-                            }
-                            
-                            // If we can't access the redirect URL, we need to handle it differently
-                            cleanup();
-                            reject(new Error('Webhook redirected but iframe access blocked - the webhook should return HTML content instead of redirecting'));
-                            return;
-                        }
-                        
-                        // Try to access iframe content to extract link directly (same origin fallback)
+                        // Try to access iframe content
                         try {
                             const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                            console.log('Successfully accessed iframe document');
-                            
-                            // Get the full text content (for JSON responses)
                             const textContent = iframeDoc.body ? 
                                 (iframeDoc.body.innerText || iframeDoc.body.textContent) : '';
-                            console.log('Body text content:', textContent);
+                            console.log('Iframe content:', textContent);
                             
                             if (textContent) {
-                                // Try to parse as JSON first
+                                // Parse JSON response
                                 try {
                                     const data = JSON.parse(textContent);
-                                    console.log('Parsed JSON:', data);
                                     const link = data?.link || data?.url || data?.downloadUrl || data?.download_link || '';
                                     if (link) {
-                                        console.log('Found link in JSON:', link);
+                                        console.log('Found link:', link);
                                         cleanup();
                                         resolve(link);
                                         return;
                                     }
-                                } catch (jsonError) {
-                                    console.log('Not JSON, trying other methods');
+                                } catch (e) {
+                                    console.log('Failed to parse JSON:', e.message);
                                 }
                                 
-                                // If not JSON, look for URLs in text
+                                // Fallback: extract URL from text
                                 const match = textContent.match(/https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+/i);
                                 if (match) {
                                     console.log('Found URL in text:', match[0]);
@@ -1755,44 +1703,14 @@
                                     return;
                                 }
                             }
-
-                            // Look for script tags that might contain the link
-                            const scripts = iframeDoc.querySelectorAll('script');
-                            console.log('Found', scripts.length, 'script tags');
-                            for (let script of scripts) {
-                                const content = script.textContent || script.innerHTML;
-                                if (content) {
-                                    // Look for URLs in the script content
-                                    const match = content.match(/https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+/i);
-                                    if (match) {
-                                        console.log('Found URL in script:', match[0]);
-                                        cleanup();
-                                        resolve(match[0]);
-                                        return;
-                                    }
-                                }
-                            }
-
-                            // Look for link elements or anchor tags
-                            const links = iframeDoc.querySelectorAll('a[href]');
-                            console.log('Found', links.length, 'anchor tags');
-                            for (let link of links) {
-                                const href = link.getAttribute('href');
-                                if (href && href.startsWith('http')) {
-                                    console.log('Found URL in anchor:', href);
-                                    cleanup();
-                                    resolve(href);
-                                    return;
-                                }
-                            }
-
-                            // If we get here, we couldn't find a link, wait for postMessage
-                            console.log('Could not extract link directly, waiting for postMessage from iframe');
+                            
+                            cleanup();
+                            reject(new Error('No download link found in response'));
                             
                         } catch (e) {
-                            // Cross-origin blocked, wait for postMessage
-                            console.log('Cross-origin access blocked:', e.message);
-                            console.log('Waiting for postMessage from iframe');
+                            console.log('Cannot access iframe content:', e.message);
+                            cleanup();
+                            reject(new Error('Cannot access iframe response - cross-origin blocked'));
                         }
                     };
 
@@ -1802,13 +1720,8 @@
                         reject(new Error('Failed to load webhook response'));
                     };
 
-                    // Debug: Log form details before submission
-                    console.log('Submitting form with action:', form.action);
-                    console.log('Form target:', form.target);
-                    console.log('Form method:', form.method);
-                    console.log('Form inputs:', form.querySelectorAll('input').length);
-                    
                     // Submit the form
+                    console.log('Submitting form to:', form.action);
                     try {
                         form.submit();
                         console.log('Form submitted successfully');
