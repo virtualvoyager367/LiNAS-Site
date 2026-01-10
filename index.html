@@ -579,6 +579,108 @@
             color: #cccccc;
             font-size: 16px;
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #f5f5f5;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .link-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .link-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            color: #333;
+            resize: none;
+            line-height: 1.4;
+            word-break: break-all;
+        }
+
+        .copy-button {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+        }
+
+        .link-container:hover .copy-button {
+            opacity: 1;
+        }
+
+        .copy-button:hover {
+            background: #5a6fd8;
+        }
+
+        .copy-button.copied {
+            background: #28a745;
+        }
     </style>
 </head>
 <body>
@@ -1661,12 +1763,8 @@
                     throw new Error('No link returned from server');
                 }
 
-                if (linkInput) {
-                    linkInput.value = link;
-                }
-                if (linkContainer) {
-                    linkContainer.style.display = 'flex';
-                }
+                // Show modal popup with the download link
+                showLinkModal(link);
             } catch (error) {
                 console.error('Error generating download link:', error);
                 alert('Failed to generate download link: ' + (error.message || 'Unknown error'));
@@ -1683,6 +1781,82 @@
             linkInput.select();
             document.execCommand('copy');
             alert('Link copied to clipboard!');
+        }
+
+        function showLinkModal(link) {
+            // Create modal overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            
+            // Create modal content
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            
+            // Create close button
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'modal-close';
+            closeBtn.innerHTML = '×';
+            closeBtn.onclick = () => {
+                document.body.removeChild(overlay);
+            };
+            
+            // Create title
+            const title = document.createElement('div');
+            title.className = 'modal-title';
+            title.textContent = 'Download Link Generated';
+            
+            // Create link container
+            const linkContainer = document.createElement('div');
+            linkContainer.className = 'link-container';
+            
+            // Create text area for the link
+            const linkInput = document.createElement('textarea');
+            linkInput.className = 'link-input';
+            linkInput.value = link;
+            linkInput.readOnly = true;
+            linkInput.rows = 3;
+            
+            // Create copy button
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'copy-button';
+            copyBtn.textContent = 'Copy';
+            copyBtn.onclick = () => {
+                linkInput.select();
+                document.execCommand('copy');
+                copyBtn.textContent = 'Copied!';
+                copyBtn.classList.add('copied');
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            };
+            
+            // Assemble modal
+            linkContainer.appendChild(linkInput);
+            linkContainer.appendChild(copyBtn);
+            modal.appendChild(closeBtn);
+            modal.appendChild(title);
+            modal.appendChild(linkContainer);
+            overlay.appendChild(modal);
+            
+            // Add to page and show
+            document.body.appendChild(overlay);
+            
+            // Close on overlay click
+            overlay.onclick = (e) => {
+                if (e.target === overlay) {
+                    document.body.removeChild(overlay);
+                }
+            };
+            
+            // Close on Escape key
+            const handleEscape = (e) => {
+                if (e.key === 'Escape') {
+                    document.body.removeChild(overlay);
+                    document.removeEventListener('keydown', handleEscape);
+                }
+            };
+            document.addEventListener('keydown', handleEscape);
         }
 
         async function updateStatistics() {
