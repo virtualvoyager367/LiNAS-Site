@@ -217,6 +217,24 @@
             margin: 0;
         }
 
+        /* Sidebar Footer */
+        .sidebar-footer {
+            margin-top: auto;
+            border-top: 1px solid #333;
+            padding: 10px 0;
+        }
+        
+        .sidebar-footer .menu-item {
+            color: #ff6b6b;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar-footer .menu-item:hover {
+            background-color: #2a2a2a;
+            color: #ff8e8e;
+            border-left-color: #ff6b6b;
+        }
+
         /* Main Content Area */
         .main-content {
             flex: 1;
@@ -512,11 +530,13 @@
                         <i class="fas fa-folder menu-icon"></i>
                         <span>Files</span>
                     </li>
-                    <li class="menu-item" id="logoutBtn">
+                </ul>
+                <div class="sidebar-footer">
+                    <div class="menu-item" id="logoutBtn">
                         <i class="fas fa-sign-out-alt menu-icon"></i>
                         <span>Logout</span>
-                    </li>
-                </ul>
+                    </div>
+                </div>
             </nav>
 
             <!-- Main Content -->
@@ -1329,12 +1349,14 @@
 
         // Logout function
         function logout() {
-            // Delete auth cookies
-            deleteCookie('ada_login_token');
-            deleteCookie('ada_current_user');
-            
-            // Redirect to login page
-            window.location.href = window.location.pathname;
+            if (confirm('Are you sure you want to log out?')) {
+                // Delete auth cookies
+                deleteCookie('ada_login_token');
+                deleteCookie('ada_current_user');
+                
+                // Redirect to login page
+                window.location.href = window.location.pathname;
+            }
         }
 
         // Initialize
