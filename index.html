@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LiNAS Dashboard</title>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -897,6 +899,9 @@
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('dashboardPage').style.display = 'block';
             updateStatistics();
+            // Initialize sidebar and menu navigation after dashboard is shown
+            initSidebarToggle();
+            initMenuNavigation();
         }
 
         // Sidebar toggle
@@ -913,12 +918,8 @@
             }
         }
         
-        // Initialize sidebar toggle when DOM is loaded
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initSidebarToggle);
-        } else {
-            initSidebarToggle();
-        }
+        // Initialize sidebar toggle when dashboard is shown
+        // (moved to showDashboard function)
 
         // Menu navigation - will be initialized after DOM is loaded
         function initMenuNavigation() {
@@ -946,12 +947,8 @@
             });
         }
         
-        // Initialize menu navigation when DOM is loaded
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initMenuNavigation);
-        } else {
-            initMenuNavigation();
-        }
+        // Menu navigation will be initialized when dashboard is shown
+        // (moved to showDashboard function)
 
         // Function to get all files from the server
         async function getAllFiles() {
