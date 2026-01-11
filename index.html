@@ -2449,6 +2449,9 @@
             window.isUploading = true;
             showUploadProgress();
             setFileInfo(`Selected: ${files[0].name}`, '#007bff');
+            
+            // Skip preparing phase for drag-and-drop - go straight to uploading
+            setUploadProgress(0, true);
 
             try {
                 for (const file of files) {
@@ -2530,9 +2533,19 @@
         }
 
         // Global helper functions - accessible from anywhere
-        function setUploadProgress(pct) {
+        function setUploadProgress(pct, skipPreparing = false) {
             const uploadProgressBar = document.getElementById('uploadProgressBar');
             const uploadStatus = document.getElementById('uploadStatus');
+            const loadProgress = document.getElementById('loadProgress');
+            const loadStatus = document.getElementById('loadStatus');
+            
+            // Hide preparing phase if requested (for drag-and-drop)
+            if (skipPreparing && loadProgress && loadStatus) {
+                loadProgress.style.display = 'none';
+                loadStatus.style.display = 'none';
+            }
+            
+            // Show upload progress
             if (uploadProgressBar) uploadProgressBar.style.width = `${pct}%`;
             if (uploadStatus) uploadStatus.textContent = `Uploading: ${Math.round(pct)}%`;
         }
