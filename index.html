@@ -1769,14 +1769,13 @@
             }
         }
 
-        function copyLink(fileId) {
+        function copyLink(fileId, copyBtn) {
             const linkInput = document.getElementById(fileId);
             if (linkInput) {
                 linkInput.select();
                 document.execCommand('copy');
                 
-                // Find and update the copy button
-                const copyBtn = document.querySelector(`[onclick*="${fileId}"]`);
+                // Update the copy button
                 if (copyBtn) {
                     const originalText = copyBtn.innerHTML;
                     copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
@@ -1881,7 +1880,7 @@
             const copyBtn = document.createElement('button');
             copyBtn.className = 'copy-button';
             copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
-            copyBtn.onclick = () => copyLink(linkInput.id);
+            copyBtn.onclick = () => copyLink(linkInput.id, copyBtn);
             
             // Assemble modal
             linkContainer.appendChild(linkInput);
