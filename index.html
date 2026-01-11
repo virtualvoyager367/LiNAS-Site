@@ -2622,7 +2622,6 @@ function checkQuotaAndToggleUpload(storagePercentage) {
             if (['xls', 'xlsx', 'csv', 'ods', 'numbers'].includes(extension)) return '📊';
             if (['zip', 'rar', '7z', 'tar', 'gz', 'jar'].includes(extension)) return '📦';
             return '📄';
-        }
 
         // Function to update upload area statistics
         async function updateUploadStats() {
