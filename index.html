@@ -225,11 +225,22 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background-color: rgba(0, 0, 0, 0.9);
-            z-index: 99999;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 999999;
             justify-content: center;
             align-items: center;
-            backdrop-filter: blur(2px);
+            backdrop-filter: blur(3px);
+        }
+        
+        .modal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 1);
+            z-index: -1;
         }
         
         .modal .login-container {
@@ -695,88 +706,9 @@
             background: #28a745;
         }
 
-        /* Confirmation Modal Styles */
-        .confirm-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: block !important;
-            z-index: 999999;
-        }
+        /* Logout Modal */
 
-        .confirm-modal {
-            background: white;
-            border-radius: 10px;
-            padding: 30px;
-            max-width: 400px;
-            width: auto;
-            min-width: 300px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-
-        .confirm-modal-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: #f5f5f5;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            color: #666;
-            transition: all 0.2s;
-        }
-
-        .confirm-modal-close:hover {
-            background: #e0e0e0;
-            color: #333;
-        }
-
-        .confirm-modal-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .confirm-modal-message {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 25px;
-            line-height: 1.4;
-        }
-
-        .confirm-modal-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .confirm-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-            min-width: 80px;
-        }
-
-        .confirm-btn-yes {
+        .modal {
             background: #dc3545;
             color: white;
         }
@@ -1888,90 +1820,12 @@
             alert('Link copied to clipboard!');
         }
 
-        function showConfirmModal(message, onConfirm) {
-            // Create modal overlay
-            const overlay = document.createElement('div');
-            overlay.className = 'confirm-modal-overlay';
-            
-            // Create modal content
-            const modal = document.createElement('div');
-            modal.className = 'confirm-modal';
-            modal.style.cssText = 'background: white !important; border-radius: 10px !important; padding: 30px !important; max-width: 400px !important; width: auto !important; min-width: 300px !important; position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.3) !important; text-align: center !important; display: block !important;';
-            
-            // Create close button
-            const closeBtn = document.createElement('button');
-            closeBtn.className = 'confirm-modal-close';
-            closeBtn.innerHTML = '×';
-            closeBtn.onclick = () => {
-                document.body.removeChild(overlay);
-            };
-            
-            // Create title
-            const title = document.createElement('div');
-            title.className = 'confirm-modal-title';
-            title.textContent = 'Confirm Deletion';
-            
-            // Create message
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'confirm-modal-message';
-            messageDiv.textContent = message;
-            
-            // Create buttons container
-            const buttonsDiv = document.createElement('div');
-            buttonsDiv.className = 'confirm-modal-buttons';
-            
-            // Create No button
-            const noBtn = document.createElement('button');
-            noBtn.className = 'confirm-btn confirm-btn-no';
-            noBtn.textContent = 'No';
-            noBtn.onclick = () => {
-                document.body.removeChild(overlay);
-            };
-            
-            // Create Yes button
-            const yesBtn = document.createElement('button');
-            yesBtn.className = 'confirm-btn confirm-btn-yes';
-            yesBtn.textContent = 'Yes';
-            yesBtn.onclick = () => {
-                document.body.removeChild(overlay);
-                onConfirm();
-            };
-            
-            // Assemble modal
-            buttonsDiv.appendChild(noBtn);
-            buttonsDiv.appendChild(yesBtn);
-            modal.appendChild(closeBtn);
-            modal.appendChild(title);
-            modal.appendChild(messageDiv);
-            modal.appendChild(buttonsDiv);
-            overlay.appendChild(modal);
-            
-            // Add to page and show
-            document.body.appendChild(overlay);
-            
-            // Close on overlay click
-            overlay.onclick = (e) => {
-                if (e.target === overlay) {
-                    document.body.removeChild(overlay);
-                }
-            };
-            
-            // Close on Escape key
-            const handleEscape = (e) => {
-                if (e.key === 'Escape') {
-                    document.body.removeChild(overlay);
-                    document.removeEventListener('keydown', handleEscape);
-                }
-            };
-            document.addEventListener('keydown', handleEscape);
-        }
-
         async function deleteFile(fileId, filename, event) {
             const deleteBtn = event ? event.target.closest('.delete-btn') : null;
             let originalBtnText = '';
 
-            // Show confirmation modal
-            showConfirmModal(`Are you sure you want to delete "${filename}"? This action cannot be undone.`, async () => {
+            // Show confirmation using browser confirm
+            if (confirm(`Are you sure you want to delete "${filename}"? This action cannot be undone.`)) {
                 try {
                     const currentUser = getCookie('ada_current_user');
                     const loginToken = getCookie('ada_login_token');
@@ -2024,7 +1878,7 @@
                         deleteBtn.disabled = false;
                     }
                 }
-            });
+            }
         }
 
         function showLinkModal(link) {
