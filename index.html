@@ -1627,6 +1627,12 @@
                 const files = result.files;
                 const user = result.user;
                 
+                console.log('displayFiles: API result structure:', result);
+                console.log('displayFiles: Files array:', files);
+                if (files.length > 0) {
+                    console.log('displayFiles: First file object:', files[0]);
+                }
+                
                 // Quota checking is now handled by the universal checkQuotaStatus function
                 
                 if (files.length === 0) {
@@ -2130,9 +2136,15 @@
                 console.log('updateStatistics: Files array type:', Object.prototype.toString.call(files));
                 
                 // Check if files actually exist and have content
+                console.log('updateStatistics: Checking files array:', files);
+                console.log('updateStatistics: Files length:', files.length);
+                console.log('updateStatistics: First file keys:', files.length > 0 ? Object.keys(files[0]) : 'N/A');
+                
                 const hasValidFiles = files.length > 0 && files.some(file => 
                     file && (file.filename || file.name || file.id)
                 );
+                
+                console.log('updateStatistics: hasValidFiles result:', hasValidFiles);
                 
                 if (hasValidFiles) {
                     // Valid files with content
