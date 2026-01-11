@@ -1492,7 +1492,7 @@
                     return;
                 }
 
-                isUploading = true;
+                window.isUploading = true;
                 showUploadProgress();
                 setFileInfo(`Selected: ${files[0].name}`, '#007bff');
 
@@ -1695,12 +1695,12 @@
             const files = Array.from(e.target.files || []);
             if (files.length === 0) return;
 
-            if (isUploading) {
+            if (window.isUploading) {
                 alert('Upload already in progress. Please wait for current upload to complete.');
                 return;
             }
 
-            isUploading = true;
+            window.isUploading = true;
             showUploadProgress();
             setFileInfo(`Selected: ${files[0].name}`, '#007bff');
 
