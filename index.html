@@ -1635,15 +1635,17 @@
                             <div style="font-size: 24px; margin-bottom: 10px;">📁</div>
                             <div style="margin-bottom: 10px;">No files uploaded yet.</div>
                             <div>Click "Upload Files" to get started</div>
+                            <div style="margin-top: 20px;">
+                                <button onclick="displayFiles()" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                    <i class="fas fa-sync-alt"></i> Refresh Files
+                                </button>
+                            </div>
                         </div>`;
                     return;
                 }
 
                 filesList.innerHTML = files.map(file => {
                     const filename = file.Filename || file.filename || 'unknown';
-                    const filesize = file.Filesize || file.filesize || '0B';
-                    const createdAt = file.createdAt || file.created_at || new Date().toISOString();
-                    const owner = file.Owner || file.owner || 'Unknown';
                     return `
                     <div class="file-item">
                         <div class="file-info">
