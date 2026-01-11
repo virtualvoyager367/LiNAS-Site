@@ -1490,10 +1490,15 @@
                 const files = result.files;
                 const user = result.user;
                 
+                // Filter out invalid files (same logic as displayFiles and updateStatistics)
+                const validFiles = files.filter(file => 
+                    file && (file.Filename || file.filename || file.name || file.id)
+                );
+                
                 // Update file count
                 const filesElement = document.getElementById('uploadStatsFiles');
                 if (filesElement) {
-                    filesElement.textContent = files.length;
+                    filesElement.textContent = validFiles.length;
                 }
                 
                 // Update storage size and usage
@@ -1595,7 +1600,7 @@
                 }
                 
                 return {
-                    files: userData.files || [],
+                    files: Array.isArray(userData.files) ? userData.files : [],
                     user: {
                         name: userData.user,
                         usage: userData.usage || 0,
@@ -2590,63 +2595,6 @@ function checkQuotaAndToggleUpload(storagePercentage) {
             if (['xls', 'xlsx', 'csv', 'ods', 'numbers'].includes(extension)) return '📊';
             if (['zip', 'rar', '7z', 'tar', 'gz', 'jar'].includes(extension)) return '📦';
             return '📄';
-        }
-
-        // Function to update upload area statistics
-        async function updateUploadStats() {
-            try {
-                const result = await getAllFiles();
-                const files = result.files;
-                const user = result.user;
-                
-                // Update file count
-                const filesElement = document.getElementById('uploadStatsFiles');
-                if (filesElement) {
-                    filesElement.textContent = files.length;
-                }
-                
-                // Update storage size and usage
-                const sizeElement = document.getElementById('uploadStatsSize');
-                const usageElement = document.getElementById('uploadStatsUsage');
-                const progressElement = document.getElementById('uploadStatsProgress');
-                
-                if (user && user.used_space && user.permitted_space) {
-                    // Use API data
-                    const displaySize = formatBytes(user.used_space);
-                    const storagePercentage = Math.min(100, user.usage);
-                    
-                    if (sizeElement) sizeElement.textContent = displaySize;
-                    if (usageElement) usageElement.textContent = `${storagePercentage.toFixed(1)}%`;
-                    if (progressElement) progressElement.style.width = `${storagePercentage}%`;
-                } else {
-                    // Fallback: calculate from files
-                    let totalBytes = 0;
-                    files.forEach(file => {
-                        const sizeStr = String(file.Filesize || '0B').trim().toUpperCase();
-                        const sizeMatch = sizeStr.match(/^([\d.]+)\s*([KMGTP]?B?|B)$/);
-                        if (sizeMatch) {
-                            const sizeValue = parseFloat(sizeMatch[1]);
-                            const unit = sizeMatch[2].charAt(0).toUpperCase() || 'B';
-                            const multiplier = {
-                                'B': 1, 'K': 1024, 'M': 1024 * 1024, 'G': 1024 * 1024 * 1024,
-                                'T': 1024 * 1024 * 1024 * 1024, 'P': 1024 * 1024 * 1024 * 1024 * 1024
-                            }[unit] || 1;
-                            totalBytes += sizeValue * multiplier;
-                        }
-                    });
-                    
-                    const displaySize = formatBytes(totalBytes);
-                    const totalStorageGB = user.permitted_space ? user.permitted_space * 1024 * 1024 * 1024 : 100 * 1024 * 1024 * 1024; // Use real quota or fallback to 100GB
-                    let storagePercentage = totalStorageGB > 0 ? Math.min(100, (totalBytes / totalStorageGB) * 100) : 0;
-                    storagePercentage = Number(storagePercentage.toFixed(2));
-                    
-                    if (sizeElement) sizeElement.textContent = displaySize;
-                    if (usageElement) usageElement.textContent = `${storagePercentage.toFixed(1)}%`;
-                    if (progressElement) progressElement.style.width = `${storagePercentage}%`;
-                }
-            } catch (error) {
-                console.error('Error updating upload stats:', error);
-            }
         }
 
         // Dashboard navigation function
