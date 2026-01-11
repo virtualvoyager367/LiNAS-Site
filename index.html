@@ -1642,26 +1642,26 @@
                 filesList.innerHTML = files.map(file => `
                     <div class="file-item">
                         <div class="file-info">
-                            <span class="file-icon">${getFileIcon(file.Filename)}</span>
+                            <span class="file-icon">${getFileIcon(file.filename)}</span>
                             <div class="file-details">
-                                <div class="file-name" title="${file.Filename}">${file.Filename}</div>
+                                <div class="file-name" title="${file.filename}">${file.filename}</div>
                                 <div class="file-meta">
-                                    <span>${formatFileSize(file.Filesize)}</span>
+                                    <span>${formatFileSize(file.Filesize || file.filesize || '0 B')}</span>
                                     <span>•</span>
-                                    <span>${formatDate(file.createdAt)}</span>
+                                    <span>${formatDate(file.createdAt || file.uploadedAt || new Date())}</span>
                                     <span>•</span>
-                                    <span>${file.Owner}</span>
+                                    <span>${file.Owner || file.owner || 'Unknown'}</span>
                                 </div>
                             </div>
                         </div>
                         <div class="file-actions">
-                            <button class="action-btn download-btn" onclick="downloadFile(${file.id}, '${(file.Filename || file.filename || 'unknown').replace(/'/g, "\\'")}', '${String(file.Filesize || '').replace(/'/g, "\\'")}', event)">
+                            <button class="action-btn download-btn" onclick="downloadFile(${file.id}, '${(file.filename || 'unknown').replace(/'/g, "\\'")}', '${String(file.Filesize || file.filesize || '').replace(/'/g, "\\'")}', event)">
                                 <i class="fas fa-download"></i> Download
                             </button>
-                            <button class="action-btn link-btn" onclick="generateDownloadLink(${file.id}, '${(file.Filename || file.filename || 'unknown').replace(/'/g, "\\'")}', event)">
+                            <button class="action-btn link-btn" onclick="generateDownloadLink(${file.id}, '${(file.filename || 'unknown').replace(/'/g, "\\'")}', event)">
                                 <i class="fas fa-link"></i> Share
                             </button>
-                            <button class="action-btn delete-btn" onclick="deleteFile(${file.id}, '${(file.Filename || file.filename || 'unknown').replace(/'/g, "\\'")}', event)">
+                            <button class="action-btn delete-btn" onclick="deleteFile(${file.id}, '${(file.filename || 'unknown').replace(/'/g, "\\'")}', event)">
                                 <i class="fas fa-trash"></i> Delete
                             </button>
                         </div>
