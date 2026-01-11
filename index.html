@@ -2586,6 +2586,7 @@ function checkQuotaAndToggleUpload(storagePercentage) {
         }
 
         function getFileIcon(filename) {
+            if (!filename) return 'fas fa-file';
             const extension = filename.split('.').pop().toLowerCase();
             const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
             const videoExtensions = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
