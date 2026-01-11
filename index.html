@@ -2579,11 +2579,32 @@
             const uploadContainer = document.getElementById('uploadContainer');
             const fileInput = document.getElementById('fileInput');
             
-            if (!uploadContainer || !fileInput) return;
+            if (!uploadContainer || !fileInput) {
+                console.log('setupDragAndDrop: uploadContainer or fileInput not found');
+                return;
+            }
             
-            // Find the drag-drop area (the first div inside uploadContainer)
-            const dropArea = uploadContainer.querySelector('div[style*="border: 2px dashed"]');
-            if (!dropArea) return;
+            // Find the drag-drop area - try multiple selectors
+            let dropArea = uploadContainer.querySelector('div[style*="border: 2px dashed"]');
+            if (!dropArea) {
+                // Try finding by inline style pattern
+                dropArea = uploadContainer.querySelector('div[style*="dashed"]');
+            }
+            if (!dropArea) {
+                // Try finding the first div with specific styling
+                dropArea = uploadContainer.querySelector('div[style*="padding: 40px"]');
+            }
+            if (!dropArea) {
+                // Fallback to first child div
+                dropArea = uploadContainer.querySelector('div > div');
+            }
+            
+            if (!dropArea) {
+                console.log('setupDragAndDrop: dropArea not found');
+                return;
+            }
+            
+            console.log('setupDragAndDrop: Found drop area', dropArea);
             
             // Prevent default drag behaviors
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -2619,13 +2640,16 @@
             }
             
             function handleDrop(e) {
+                console.log('handleDrop triggered');
                 const dt = e.dataTransfer;
                 const files = dt.files;
                 
+                console.log('Dropped files:', files.length);
+                
                 // Only handle the first file (single file upload)
                 if (files.length > 0) {
-                    // Create a new FileList with only the first file
                     const singleFile = files[0];
+                    console.log('Processing file:', singleFile.name);
                     
                     // Clear the file input and set the new file
                     fileInput.value = '';
@@ -2635,8 +2659,12 @@
                     dataTransfer.items.add(singleFile);
                     fileInput.files = dataTransfer.files;
                     
+                    console.log('File set to input, triggering handleFileSelect');
+                    
                     // Trigger the file selection handler
                     handleFileSelect({ target: fileInput });
+                } else {
+                    console.log('No files found in drop');
                 }
             }
         }
