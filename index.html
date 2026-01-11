@@ -2530,6 +2530,13 @@
         }
 
         // Global helper functions - accessible from anywhere
+        function setUploadProgress(pct) {
+            const uploadProgressBar = document.getElementById('uploadProgressBar');
+            const uploadStatus = document.getElementById('uploadStatus');
+            if (uploadProgressBar) uploadProgressBar.style.width = `${pct}%`;
+            if (uploadStatus) uploadStatus.textContent = `Uploading: ${Math.round(pct)}%`;
+        }
+
         function showUploadProgress() {
             const uploadProgress = document.getElementById('uploadProgress');
             if (uploadProgress) uploadProgress.style.display = 'block';
