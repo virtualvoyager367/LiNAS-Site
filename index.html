@@ -2614,14 +2614,23 @@ function checkQuotaAndToggleUpload(storagePercentage) {
             const videoExtensions = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
             const audioExtensions = ['mp3', 'wav', 'ogg', 'm4a'];
             
-            if (imageExtensions.includes(extension)) return '🖼️';
-            if (videoExtensions.includes(extension)) return '🎥';
-            if (audioExtensions.includes(extension)) return '🎵';
-            if (extension === 'pdf') return '📄';
-            if (['doc', 'docx', 'odt', 'pages'].includes(extension)) return '📝';
-            if (['xls', 'xlsx', 'csv', 'ods', 'numbers'].includes(extension)) return '📊';
-            if (['zip', 'rar', '7z', 'tar', 'gz', 'jar'].includes(extension)) return '📦';
-            return '📄';
+            if (imageExtensions.includes(extension)) {
+                return '🖼️';
+            } else if (videoExtensions.includes(extension)) {
+                return '🎥';
+            } else if (audioExtensions.includes(extension)) {
+                return '🎵';
+            } else if (extension === 'pdf') {
+                return '📄';
+            } else if (['doc', 'docx', 'odt', 'pages'].includes(extension)) {
+                return '📝';
+            } else if (['xls', 'xlsx', 'csv', 'ods', 'numbers'].includes(extension)) {
+                return '📊';
+            } else if (['zip', 'rar', '7z', 'tar', 'gz', 'jar'].includes(extension)) {
+                return '📦';
+            } else {
+                return '📄';
+            }
 
         // Function to update upload area statistics
         async function updateUploadStats() {
