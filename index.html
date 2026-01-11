@@ -2182,7 +2182,7 @@
                     let totalBytes = 0;
                     
                     if (totalFiles > 0) {
-                        files.forEach(file => {
+                        validFiles.forEach(file => {
                             // Convert size string to bytes
                             const sizeStr = String(file.Filesize || '0B').trim().toUpperCase();
                             const sizeMatch = sizeStr.match(/^([\d.]+)\s*([KMGTP]?B?|B)$/);
