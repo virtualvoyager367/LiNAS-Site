@@ -2539,10 +2539,16 @@
             const loadProgress = document.getElementById('loadProgress');
             const loadStatus = document.getElementById('loadStatus');
             
-            // Hide preparing phase if requested (for drag-and-drop)
+            // Hide preparing phase completely if requested (for drag-and-drop)
             if (skipPreparing && loadProgress && loadStatus) {
                 loadProgress.style.display = 'none';
                 loadStatus.style.display = 'none';
+            }
+            
+            // Also hide the entire preparing progress bar container for drag-and-drop
+            const preparingContainer = document.getElementById('preparingProgress');
+            if (skipPreparing && preparingContainer) {
+                preparingContainer.style.display = 'none';
             }
             
             // Show upload progress
