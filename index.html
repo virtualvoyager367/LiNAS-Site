@@ -2552,7 +2552,15 @@
 
         function showUploadProgress() {
             const uploadProgress = document.getElementById('uploadProgress');
+            const loadProgress = document.getElementById('loadProgress');
+            const loadStatus = document.getElementById('loadStatus');
+            
             if (uploadProgress) uploadProgress.style.display = 'block';
+            // Show preparing phase by default
+            if (loadProgress && loadStatus) {
+                loadProgress.style.display = 'block';
+                loadStatus.style.display = 'block';
+            }
         }
 
         function hideUploadProgressNow() {
