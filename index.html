@@ -1787,8 +1787,8 @@
                     throw new Error('No link returned from server');
                 }
 
-                // Show modal popup with the download link
-                showLinkModal(link);
+                // Show download link in a simple alert
+                alert(`Download link: ${link}`);
             } catch (error) {
                 console.error('Error generating download link:', error);
                 alert('Failed to generate download link: ' + (error.message || 'Unknown error'));
@@ -1866,88 +1866,6 @@
                     }
                 }
             }
-        }
-
-        function showLinkModal(link) {
-            console.log('Creating modal with link:', link);
-            
-            // Create modal overlay
-            const overlay = document.createElement('div');
-            overlay.className = 'modal-overlay';
-            
-            // Create modal content
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.style.cssText = 'background: white !important; border-radius: 10px !important; padding: 20px !important; max-width: 500px !important; width: 500px !important; height: auto !important; max-height: 300px !important; position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.3) !important; display: block !important;';
-            console.log('Modal elements created');
-            
-            // Create close button
-            const closeBtn = document.createElement('button');
-            closeBtn.className = 'modal-close';
-            closeBtn.innerHTML = '×';
-            closeBtn.onclick = () => {
-                document.body.removeChild(overlay);
-            };
-            
-            // Create title
-            const title = document.createElement('div');
-            title.className = 'modal-title';
-            title.textContent = 'Download Link Generated';
-            
-            // Create link container
-            const linkContainer = document.createElement('div');
-            linkContainer.className = 'link-container';
-            
-            // Create text area for the link
-            const linkInput = document.createElement('textarea');
-            linkInput.className = 'link-input';
-            linkInput.value = link;
-            linkInput.readOnly = true;
-            linkInput.rows = 3;
-            
-            // Create copy button
-            const copyBtn = document.createElement('button');
-            copyBtn.className = 'copy-button';
-            copyBtn.textContent = 'Copy';
-            copyBtn.onclick = () => {
-                linkInput.select();
-                document.execCommand('copy');
-                copyBtn.textContent = 'Copied!';
-                copyBtn.classList.add('copied');
-                setTimeout(() => {
-                    copyBtn.textContent = 'Copy';
-                    copyBtn.classList.remove('copied');
-                }, 2000);
-            };
-            
-            // Assemble modal
-            linkContainer.appendChild(linkInput);
-            linkContainer.appendChild(copyBtn);
-            modal.appendChild(closeBtn);
-            modal.appendChild(title);
-            modal.appendChild(linkContainer);
-            overlay.appendChild(modal);
-            
-            // Add to page and show
-            document.body.appendChild(overlay);
-            console.log('Modal added to DOM');
-            console.log('Modal display style:', window.getComputedStyle(overlay).display);
-            
-            // Close on overlay click
-            overlay.onclick = (e) => {
-                if (e.target === overlay) {
-                    document.body.removeChild(overlay);
-                }
-            };
-            
-            // Close on Escape key
-            const handleEscape = (e) => {
-                if (e.key === 'Escape') {
-                    document.body.removeChild(overlay);
-                    document.removeEventListener('keydown', handleEscape);
-                }
-            };
-            document.addEventListener('keydown', handleEscape);
         }
 
         async function updateStatistics() {
