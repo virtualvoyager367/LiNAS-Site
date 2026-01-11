@@ -899,7 +899,7 @@
                                     <div id="dashboardStorageBar" style="background: white; height: 100%; width: 0%; transition: width 0.5s ease; border-radius: 8px;"></div>
                                 </div>
                                 <div style="font-size: 12px; opacity: 0.8; display: flex; justify-content: space-between;">
-                                    <span>0 GB</span>
+                                    <span id="dashboardStorageUsedLabel">0 GB</span>
                                     <span id="dashboardStorageTotal">Loading...</span>
                                 </div>
                             </div>
@@ -2216,8 +2216,12 @@
                 }
                 // Update total storage display
                 const dashboardStorageTotal = document.getElementById('dashboardStorageTotal');
+                const dashboardStorageUsedLabel = document.getElementById('dashboardStorageUsedLabel');
                 if (dashboardStorageTotal && user && user.permitted_space) {
                     dashboardStorageTotal.textContent = `${formatBytes(user.permitted_space)} Total`;
+                }
+                if (dashboardStorageUsedLabel && user && user.used_space) {
+                    dashboardStorageUsedLabel.textContent = formatBytes(user.used_space);
                 }
                 if (lastUpdated) {
                     const now = new Date();
