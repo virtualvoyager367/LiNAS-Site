@@ -2106,9 +2106,13 @@
             }
 
             try {
+                console.log('updateStatistics: Starting...');
                 const result = await getAllFiles();
                 const files = result.files;
                 const user = result.user;
+                
+                console.log('updateStatistics: Files received:', files);
+                console.log('updateStatistics: User data:', user);
                 
                 if (!files || !Array.isArray(files)) {
                     console.error('Invalid files data received');
@@ -2128,20 +2132,6 @@
                         recentUploads++;
                     }
                 });
-
-                // Update dashboard stat cards
-                if (totalFilesElement) {
-                    totalFilesElement.textContent = totalFiles;
-                }
-                if (totalSizeElement) {
-                    totalSizeElement.textContent = displaySize;
-                }
-                if (recentUploadsElement) {
-                    recentUploadsElement.textContent = recentUploads;
-                }
-                if (storageUsedElement) {
-                    storageUsedElement.textContent = `${storagePercentage}%`;
-                }
 
                 // Use user data from API if available, otherwise calculate from files
                 let displaySize;
@@ -2191,6 +2181,27 @@
                 if (dashboardStorageUsed) {
                     dashboardStorageUsed.textContent = displaySize;
                 }
+                // Update dashboard stat cards after variables are calculated
+                if (totalFilesElement) {
+                    console.log('Updating total files:', totalFiles);
+                    totalFilesElement.textContent = totalFiles;
+                }
+                if (totalSizeElement) {
+                    totalSizeElement.textContent = displaySize;
+                }
+                if (recentUploadsElement) {
+                    recentUploadsElement.textContent = recentUploads;
+                }
+                if (storageUsedElement) {
+                    storageUsedElement.textContent = `${storagePercentage}%`;
+                }
+
+                if (dashboardStoragePercent) {
+                    dashboardStoragePercent.textContent = `${storagePercentage}%`;
+                }
+                if (dashboardStorageUsed) {
+                    dashboardStorageUsed.textContent = displaySize;
+                }
                 if (dashboardStorageBar) {
                     dashboardStorageBar.style.width = `${storagePercentage}%`;
                 }
@@ -2206,6 +2217,15 @@
 
             } catch (error) {
                 console.error('Error updating statistics:', error);
+                console.error('Error stack:', error.stack);
+                console.error('Error details:', {
+                    message: error.message,
+                    name: error.name,
+                    totalFiles: typeof totalFiles,
+                    displaySize: typeof displaySize,
+                    storagePercentage: typeof storagePercentage,
+                    recentUploads: typeof recentUploads
+                });
             } finally {
                 return null;
             }
