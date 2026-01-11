@@ -2436,6 +2436,46 @@
             }
         }
 
+        // Global file selection handler - accessible from anywhere
+        async function handleFileSelect(e) {
+            const files = Array.from(e.dataTransfer ? e.dataTransfer.files : e.target.files || []);
+            if (files.length === 0) return;
+
+            if (window.isUploading) {
+                alert('Upload already in progress. Please wait for current upload to complete.');
+                return;
+            }
+
+            window.isUploading = true;
+            showUploadProgress();
+            setFileInfo(`Selected: ${files[0].name}`, '#007bff');
+
+            try {
+                for (const file of files) {
+                    await uploadFileXhr(file);
+                }
+                hideUploadProgressNow();
+                setFileInfo('Upload complete!', '#4caf50');
+                
+                // Auto-refresh files list and statistics after successful upload
+                displayFiles();
+                updateStatistics();
+                checkQuotaStatus();
+                updateUploadStats();
+            } catch (error) {
+                console.error('Error during file upload:', error);
+                if (error && error.name === 'AbortError') {
+                    setFileInfo('Upload cancelled', '#666');
+                } else {
+                    setFileInfo(`Upload failed: ${error.message}`, 'red');
+                }
+                hideUploadProgressNow();
+            } finally {
+                window.isUploading = false;
+                if (fileInput) fileInput.value = '';
+            }
+        }
+
         // Global helper functions - accessible from anywhere
         function formatBytes(bytes) {
             const b = Number(bytes) || 0;
