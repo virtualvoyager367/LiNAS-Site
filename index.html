@@ -2127,12 +2127,8 @@
                     // Empty array - no files
                     totalFiles = 0;
                     console.log('updateStatistics: No files found');
-                } else if (files.length === 1 && !files[0].hasOwnProperty('filename')) {
-                    // Single empty object {} - no files
-                    totalFiles = 0;
-                    console.log('updateStatistics: Empty file object found');
                 } else {
-                    // Valid files array with actual files
+                    // Valid files array with actual files (including single files)
                     totalFiles = files.length;
                     console.log('updateStatistics: Found files:', totalFiles);
                 }
