@@ -870,22 +870,124 @@
                         <h1>Dashboard</h1>
                     </div>
                     <div class="content-body">
+                        <!-- Overview Section -->
+                        <div style="margin-bottom: 30px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                                <div>
+                                    <h2 style="margin: 0; color: #333; font-size: 24px;">Storage Overview</h2>
+                                    <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Monitor your file storage and usage statistics</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 12px; color: #999;">Last updated</div>
+                                    <div id="lastUpdated" style="font-size: 14px; color: #666;">Just now</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Storage Progress Card -->
+                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 25px; color: white; margin-bottom: 25px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <div>
+                                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 5px;">Storage Usage</div>
+                                        <div style="font-size: 32px; font-weight: 700;" id="dashboardStoragePercent">0%</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-size: 14px; opacity: 0.9;">Used Space</div>
+                                        <div style="font-size: 20px; font-weight: 600;" id="dashboardStorageUsed">0 MB</div>
+                                    </div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.2); border-radius: 8px; height: 12px; overflow: hidden; margin-bottom: 10px;">
+                                    <div id="dashboardStorageBar" style="background: white; height: 100%; width: 0%; transition: width 0.5s ease; border-radius: 8px;"></div>
+                                </div>
+                                <div style="font-size: 12px; opacity: 0.8; display: flex; justify-content: space-between;">
+                                    <span>0 GB</span>
+                                    <span id="dashboardStorageTotal">100 GB Total</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stats Grid -->
                         <div class="stats-grid">
-                            <div class="stat-card">
-                                <h3>Total Files</h3>
-                                <div class="value" id="totalFiles">0</div>
+                            <!-- Total Files Card -->
+                            <div class="stat-card" style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                    <div style="width: 48px; height: 48px; background: #e3f2fd; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                                        <i class="fas fa-folder" style="font-size: 20px; color: #2196f3;"></i>
+                                    </div>
+                                    <div>
+                                        <h3 style="margin: 0; color: #666; font-size: 14px; font-weight: 500;">Total Files</h3>
+                                        <div class="value" id="totalFiles" style="font-size: 28px; font-weight: 700; color: #333; margin: 5px 0 0 0;">0</div>
+                                    </div>
+                                </div>
+                                <div style="font-size: 12px; color: #999;">
+                                    <i class="fas fa-info-circle"></i> All uploaded files
+                                </div>
                             </div>
-                            <div class="stat-card">
-                                <h3>Total Size</h3>
-                                <div class="value" id="totalSize">0 MB</div>
+
+                            <!-- Total Size Card -->
+                            <div class="stat-card" style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                    <div style="width: 48px; height: 48px; background: #e8f5e8; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                                        <i class="fas fa-database" style="font-size: 20px; color: #4caf50;"></i>
+                                    </div>
+                                    <div>
+                                        <h3 style="margin: 0; color: #666; font-size: 14px; font-weight: 500;">Total Size</h3>
+                                        <div class="value" id="totalSize" style="font-size: 28px; font-weight: 700; color: #333; margin: 5px 0 0 0;">0 MB</div>
+                                    </div>
+                                </div>
+                                <div style="font-size: 12px; color: #999;">
+                                    <i class="fas fa-info-circle"></i> Combined file sizes
+                                </div>
                             </div>
-                            <div class="stat-card">
-                                <h3>Recent Uploads</h3>
-                                <div class="value" id="recentUploads">0</div>
+
+                            <!-- Recent Uploads Card -->
+                            <div class="stat-card" style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                    <div style="width: 48px; height: 48px; background: #fff3e0; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                                        <i class="fas fa-clock" style="font-size: 20px; color: #ff9800;"></i>
+                                    </div>
+                                    <div>
+                                        <h3 style="margin: 0; color: #666; font-size: 14px; font-weight: 500;">Recent Uploads</h3>
+                                        <div class="value" id="recentUploads" style="font-size: 28px; font-weight: 700; color: #333; margin: 5px 0 0 0;">0</div>
+                                    </div>
+                                </div>
+                                <div style="font-size: 12px; color: #999;">
+                                    <i class="fas fa-info-circle"></i> Last 7 days
+                                </div>
                             </div>
-                            <div class="stat-card">
-                                <h3>Storage Used</h3>
-                                <div class="value" id="storageUsed">0%</div>
+
+                            <!-- Storage Used Card -->
+                            <div class="stat-card" style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                    <div style="width: 48px; height: 48px; background: #fce4ec; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                                        <i class="fas fa-chart-pie" style="font-size: 20px; color: #e91e63;"></i>
+                                    </div>
+                                    <div>
+                                        <h3 style="margin: 0; color: #666; font-size: 14px; font-weight: 500;">Storage Used</h3>
+                                        <div class="value" id="storageUsed" style="font-size: 28px; font-weight: 700; color: #333; margin: 5px 0 0 0;">0%</div>
+                                    </div>
+                                </div>
+                                <div style="font-size: 12px; color: #999;">
+                                    <i class="fas fa-info-circle"></i> Of allocated space
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions Section -->
+                        <div style="margin-top: 30px;">
+                            <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">Quick Actions</h3>
+                            <div style="display: flex; gap: 15px;">
+                                <button onclick="goToFilesPage()" style="flex: 1; background: #007bff; color: white; border: none; border-radius: 8px; padding: 15px; cursor: pointer; transition: background 0.2s ease; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#0056b3';" onmouseout="this.style.background='#007bff';">
+                                    <i class="fas fa-upload" style="margin-right: 8px;"></i>
+                                    Upload Files
+                                </button>
+                                <button onclick="goToFilesPage()" style="flex: 1; background: #6c757d; color: white; border: none; border-radius: 8px; padding: 15px; cursor: pointer; transition: background 0.2s ease; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#545b62';" onmouseout="this.style.background='#6c757d';">
+                                    <i class="fas fa-folder-open" style="margin-right: 8px;"></i>
+                                    Manage Files
+                                </button>
+                                <button onclick="showLogoutConfirmation()" style="flex: 1; background: #dc3545; color: white; border: none; border-radius: 8px; padding: 15px; cursor: pointer; transition: background 0.2s ease; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#c82333';" onmouseout="this.style.background='#dc3545';">
+                                    <i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i>
+                                    Logout
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -937,7 +1039,7 @@
                                             <span id="uploadStatsUsage" style="font-size: 14px; font-weight: 600; color: #333;">-</span>
                                         </div>
                                         <div style="margin-top: 12px;">
-                                            <div style="font-size: 12px; color: #666; margin-bottom: 4px;">Storage Progress</div>
+                                            <div style="font-size: 12px; color: #666; margin-bottom: 4px;">Storage Usage</div>
                                             <div style="background: #f0f0f0; border-radius: 4px; height: 8px; overflow: hidden;">
                                                 <div id="uploadStatsProgress" style="background: #007bff; height: 100%; width: 0%; transition: width 0.3s ease;"></div>
                                             </div>
@@ -2251,6 +2353,26 @@
                 recentUploadsElement.textContent = recentUploads;
                 storageUsedElement.textContent = `${storagePercentage}%`;
 
+                // Update dashboard-specific elements
+                const dashboardStoragePercent = document.getElementById('dashboardStoragePercent');
+                const dashboardStorageUsed = document.getElementById('dashboardStorageUsed');
+                const dashboardStorageBar = document.getElementById('dashboardStorageBar');
+                const lastUpdated = document.getElementById('lastUpdated');
+
+                if (dashboardStoragePercent) {
+                    dashboardStoragePercent.textContent = `${storagePercentage}%`;
+                }
+                if (dashboardStorageUsed) {
+                    dashboardStorageUsed.textContent = displaySize;
+                }
+                if (dashboardStorageBar) {
+                    dashboardStorageBar.style.width = `${storagePercentage}%`;
+                }
+                if (lastUpdated) {
+                    const now = new Date();
+                    lastUpdated.textContent = now.toLocaleTimeString();
+                }
+
             } catch (error) {
                 console.error('Error updating statistics:', error);
             }
@@ -2344,7 +2466,7 @@
                                             <span id="uploadStatsUsage" style="font-size: 14px; font-weight: 600; color: #333;">-</span>
                                         </div>
                                         <div style="margin-top: 12px;">
-                                            <div style="font-size: 12px; color: #666; margin-bottom: 4px;">Storage Progress</div>
+                                            <div style="font-size: 12px; color: #666; margin-bottom: 4px;">Storage Usage</div>
                                             <div style="background: #f0f0f0; border-radius: 4px; height: 8px; overflow: hidden;">
                                                 <div id="uploadStatsProgress" style="background: #007bff; height: 100%; width: 0%; transition: width 0.3s ease;"></div>
                                             </div>
@@ -2385,6 +2507,9 @@
                             selectBtn.addEventListener('click', () => fileInput.click());
                             fileInput.addEventListener('change', handleFileSelect);
                         }
+                        
+                        // Add drag and drop functionality
+                        setupDragAndDrop();
                         
                         // Populate statistics
                         updateUploadStats();
@@ -2446,6 +2571,81 @@
                 }
             } catch (error) {
                 console.error('Error updating upload stats:', error);
+            }
+        }
+
+        // Drag and drop setup function
+        function setupDragAndDrop() {
+            const uploadContainer = document.getElementById('uploadContainer');
+            const fileInput = document.getElementById('fileInput');
+            
+            if (!uploadContainer || !fileInput) return;
+            
+            // Find the drag-drop area (the first div inside uploadContainer)
+            const dropArea = uploadContainer.querySelector('div[style*="border: 2px dashed"]');
+            if (!dropArea) return;
+            
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            // Highlight drop area when item is dragged over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            // Handle dropped files
+            dropArea.addEventListener('drop', handleDrop, false);
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            function highlight(e) {
+                dropArea.style.borderColor = '#007bff';
+                dropArea.style.background = '#f0f8ff';
+            }
+            
+            function unhighlight(e) {
+                dropArea.style.borderColor = '#ddd';
+                dropArea.style.background = '#f9f9f9';
+            }
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                // Only handle the first file (single file upload)
+                if (files.length > 0) {
+                    // Create a new FileList with only the first file
+                    const singleFile = files[0];
+                    
+                    // Clear the file input and set the new file
+                    fileInput.value = '';
+                    
+                    // Create a new data transfer object to simulate file selection
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(singleFile);
+                    fileInput.files = dataTransfer.files;
+                    
+                    // Trigger the file selection handler
+                    handleFileSelect({ target: fileInput });
+                }
+            }
+        }
+
+        // Dashboard navigation function
+        function goToFilesPage() {
+            const filesMenuItem = document.querySelector('[data-page="files"]');
+            if (filesMenuItem) {
+                filesMenuItem.click();
             }
         }
 
@@ -2514,6 +2714,9 @@
             
             // Populate upload area statistics on initial load
             updateUploadStats();
+            
+            // Setup drag and drop on initial load
+            setupDragAndDrop();
         });
     </script>
 </body>
