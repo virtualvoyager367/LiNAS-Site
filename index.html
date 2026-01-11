@@ -1236,7 +1236,7 @@
             const payload = parseIframeContent(html).toLowerCase();
             if (payload === 'valid') return 'valid';
             if (payload === 'invalid') return 'invalid';
-            return 'unknown';
+            return null;
         }
 
         // Cookie management
@@ -1595,29 +1595,7 @@
 
                 const data = await response.json();
                 // The API returns an array with one object containing files array and user info
-                console.log('getAllFiles: Raw API response:', data);
-                console.log('getAllFiles: Response type:', typeof data);
-                console.log('getAllFiles: Response structure:', JSON.stringify(data, null, 2));
-                
-                let userData = null;
-                let files = [];
-                
-                if (Array.isArray(data)) {
-                    // Response is an array of files
-                    files = data;
-                    console.log('getAllFiles: Using array response directly');
-                } else if (data && typeof data === 'object') {
-                    // Response is an object with files and user
-                    files = data.files || [];
-                    userData = data.user || null;
-                    console.log('getAllFiles: Using object response with files:', files.length);
-                } else {
-                    // Unexpected response format
-                    console.error('getAllFiles: Unexpected response format:', data);
-                    files = [];
-                    userData = null;
-                }
-                
+                const userData = data[0];
                 if (!userData) {
                     return { files: [], user: null };
                 }
@@ -1649,12 +1627,6 @@
                 const files = result.files;
                 const user = result.user;
                 
-                console.log('displayFiles: API result structure:', result);
-                console.log('displayFiles: Files array:', files);
-                if (files.length > 0) {
-                    console.log('displayFiles: First file object:', files[0]);
-                }
-                
                 // Quota checking is now handled by the universal checkQuotaStatus function
                 
                 if (files.length === 0) {
@@ -1670,26 +1642,26 @@
                 filesList.innerHTML = files.map(file => `
                     <div class="file-item">
                         <div class="file-info">
-                            <span class="file-icon">${getFileIcon(getFileProperty(file, 'filename', 'unknown'))}</span>
+                            <span class="file-icon">${getFileIcon(file.Filename)}</span>
                             <div class="file-details">
-                                <div class="file-name" title="${getFileProperty(file, 'filename', 'unknown')}">${getFileProperty(file, 'filename', 'unknown')}</div>
+                                <div class="file-name" title="${file.Filename}">${file.Filename}</div>
                                 <div class="file-meta">
-                                    <span>${formatFileSize(getFileProperty(file, 'filesize', '0 B'))}</span>
+                                    <span>${formatFileSize(file.Filesize)}</span>
                                     <span>•</span>
-                                    <span>${formatDate(getFileProperty(file, 'createdAt', new Date()))}</span>
+                                    <span>${formatDate(file.createdAt)}</span>
                                     <span>•</span>
-                                    <span>${getFileProperty(file, 'owner', 'Unknown')}</span>
+                                    <span>${file.Owner}</span>
                                 </div>
                             </div>
                         </div>
                         <div class="file-actions">
-                            <button class="action-btn download-btn" onclick="downloadFile(${file.id}, '${getFileProperty(file, 'filename', 'unknown').replace(/'/g, "\\'")}', '${String(getFileProperty(file, 'filesize', '')).replace(/'/g, "\\'")}', event)">
+                            <button class="action-btn download-btn" onclick="downloadFile(${file.id}, '${(file.Filename || file.filename || 'unknown').replace(/'/g, "\\'")}', '${String(file.Filesize || '').replace(/'/g, "\\'")}', event)">
                                 <i class="fas fa-download"></i> Download
                             </button>
-                            <button class="action-btn link-btn" onclick="generateDownloadLink(${file.id}, '${getFileProperty(file, 'filename', 'unknown').replace(/'/g, "\\'")}', event)">
+                            <button class="action-btn link-btn" onclick="generateDownloadLink(${file.id}, '${(file.Filename || file.filename || 'unknown').replace(/'/g, "\\'")}', event)">
                                 <i class="fas fa-link"></i> Share
                             </button>
-                            <button class="action-btn delete-btn" onclick="deleteFile(${file.id}, '${getFileProperty(file, 'filename', 'unknown').replace(/'/g, "\\'")}', event)">
+                            <button class="action-btn delete-btn" onclick="deleteFile(${file.id}, '${(file.Filename || file.filename || 'unknown').replace(/'/g, "\\'")}', event)">
                                 <i class="fas fa-trash"></i> Delete
                             </button>
                         </div>
@@ -1701,9 +1673,6 @@
                         </div>
                     </div>
                 `).join('');
-                
-                // Update statistics when files are displayed
-                updateStatistics();
             } catch (error) {
                 filesList.innerHTML = `
                     <div style="padding: 20px; text-align: center; color: #e74c3c;">
@@ -2158,15 +2127,9 @@
                 console.log('updateStatistics: Files array type:', Object.prototype.toString.call(files));
                 
                 // Check if files actually exist and have content
-                console.log('updateStatistics: Checking files array:', files);
-                console.log('updateStatistics: Files length:', files.length);
-                console.log('updateStatistics: First file keys:', files.length > 0 ? Object.keys(files[0]) : 'N/A');
-                
                 const hasValidFiles = files.length > 0 && files.some(file => 
                     file && (file.filename || file.name || file.id)
                 );
-                
-                console.log('updateStatistics: hasValidFiles result:', hasValidFiles);
                 
                 if (hasValidFiles) {
                     // Valid files with content
@@ -2625,34 +2588,19 @@ function checkQuotaAndToggleUpload(storagePercentage) {
         function getFileIcon(filename) {
             if (!filename) return 'fas fa-file';
             const extension = filename.split('.').pop().toLowerCase();
-        }
-
-        // Helper function to safely get file properties
-        function getFileProperty(file, property, fallback) {
-            if (!file) return fallback;
-            return file[property] || file[property.toLowerCase()] || fallback;
-        }
             const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
             const videoExtensions = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
             const audioExtensions = ['mp3', 'wav', 'ogg', 'm4a'];
             
-            if (imageExtensions.includes(extension)) {
-                return '🖼️';
-            } else if (videoExtensions.includes(extension)) {
-                return '🎥';
-            } else if (audioExtensions.includes(extension)) {
-                return '🎵';
-            } else if (extension === 'pdf') {
-                return '📄';
-            } else if (['doc', 'docx', 'odt', 'pages'].includes(extension)) {
-                return '📝';
-            } else if (['xls', 'xlsx', 'csv', 'ods', 'numbers'].includes(extension)) {
-                return '📊';
-            } else if (['zip', 'rar', '7z', 'tar', 'gz', 'jar'].includes(extension)) {
-                return '📦';
-            } else {
-                return '📄';
-            }
+            if (imageExtensions.includes(extension)) return '🖼️';
+            if (videoExtensions.includes(extension)) return '🎥';
+            if (audioExtensions.includes(extension)) return '🎵';
+            if (extension === 'pdf') return '📄';
+            if (['doc', 'docx', 'odt', 'pages'].includes(extension)) return '📝';
+            if (['xls', 'xlsx', 'csv', 'ods', 'numbers'].includes(extension)) return '📊';
+            if (['zip', 'rar', '7z', 'tar', 'gz', 'jar'].includes(extension)) return '📦';
+            return '📄';
+        }
 
         // Function to update upload area statistics
         async function updateUploadStats() {
