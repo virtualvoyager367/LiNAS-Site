@@ -2125,13 +2125,19 @@
                 const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
                 let recentUploads = 0;
 
-                // Count recent uploads (within last 7 days)
-                files.forEach(file => {
-                    const uploadDate = new Date(file.createdAt || file.updatedAt);
-                    if (uploadDate >= oneWeekAgo) {
-                        recentUploads++;
-                    }
-                });
+                console.log('updateStatistics: Total files calculated:', totalFiles);
+
+                // Count recent uploads (within last 7 days) - only if files exist
+                if (totalFiles > 0) {
+                    files.forEach(file => {
+                        const uploadDate = new Date(file.createdAt || file.updatedAt);
+                        if (uploadDate >= oneWeekAgo) {
+                            recentUploads++;
+                        }
+                    });
+                }
+
+                console.log('updateStatistics: Recent uploads calculated:', recentUploads);
 
                 // Use user data from API if available, otherwise calculate from files
                 let displaySize;
@@ -2144,28 +2150,31 @@
                 } else {
                     // Fallback: calculate from files (old method)
                     let totalBytes = 0;
-                    files.forEach(file => {
-                        // Convert size string to bytes
-                        const sizeStr = String(file.Filesize || '0B').trim().toUpperCase();
-                        const sizeMatch = sizeStr.match(/^([\d.]+)\s*([KMGTP]?B?|B)$/);
-                        
-                        if (sizeMatch) {
-                            const sizeValue = parseFloat(sizeMatch[1]);
-                            const unit = sizeMatch[2].charAt(0).toUpperCase() || 'B';
+                    
+                    if (totalFiles > 0) {
+                        files.forEach(file => {
+                            // Convert size string to bytes
+                            const sizeStr = String(file.Filesize || '0B').trim().toUpperCase();
+                            const sizeMatch = sizeStr.match(/^([\d.]+)\s*([KMGTP]?B?|B)$/);
                             
-                            // Convert all sizes to bytes for total
-                            const multiplier = {
-                                'B': 1,
-                                'K': 1024,
-                                'M': 1024 * 1024,
-                                'G': 1024 * 1024 * 1024,
-                                'T': 1024 * 1024 * 1024 * 1024,
-                                'P': 1024 * 1024 * 1024 * 1024 * 1024
-                            }[unit] || 1;
-                            
-                            totalBytes += sizeValue * multiplier;
-                        }
-                    });
+                            if (sizeMatch) {
+                                const sizeValue = parseFloat(sizeMatch[1]);
+                                const unit = sizeMatch[2].charAt(0).toUpperCase() || 'B';
+                                
+                                // Convert all sizes to bytes for total
+                                const multiplier = {
+                                    'B': 1,
+                                    'K': 1024,
+                                    'M': 1024 * 1024,
+                                    'G': 1024 * 1024 * 1024,
+                                    'T': 1024 * 1024 * 1024 * 1024,
+                                    'P': 1024 * 1024 * 1024 * 1024 * 1024
+                                }[unit] || 1;
+                                
+                                totalBytes += sizeValue * multiplier;
+                            }
+                        });
+                    }
                     
                     displaySize = formatBytes(totalBytes);
                     // Calculate storage used percentage using real API quota data
@@ -2595,7 +2604,8 @@ function checkQuotaAndToggleUpload(storagePercentage) {
                     
                     const displaySize = formatBytes(totalBytes);
                     const totalStorageGB = user.permitted_space ? user.permitted_space * 1024 * 1024 * 1024 : 100 * 1024 * 1024 * 1024; // Use real quota or fallback to 100GB
-                    const storagePercentage = totalStorageGB > 0 ? Math.min(100, (totalBytes / totalStorageGB) * 100).toFixed(2) : 0;
+                    let storagePercentage = totalStorageGB > 0 ? Math.min(100, (totalBytes / totalStorageGB) * 100) : 0;
+                    storagePercentage = Number(storagePercentage.toFixed(2));
                     
                     if (sizeElement) sizeElement.textContent = displaySize;
                     if (usageElement) usageElement.textContent = `${storagePercentage.toFixed(1)}%`;
