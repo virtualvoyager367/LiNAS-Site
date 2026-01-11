@@ -1641,6 +1641,9 @@
 
                 filesList.innerHTML = files.map(file => {
                     const filename = file.Filename || file.filename || 'unknown';
+                    const filesize = file.Filesize || file.filesize || '0B';
+                    const createdAt = file.createdAt || file.created_at || new Date().toISOString();
+                    const owner = file.Owner || file.owner || 'Unknown';
                     return `
                     <div class="file-item">
                         <div class="file-info">
