@@ -1655,13 +1655,13 @@
                             </div>
                         </div>
                         <div class="file-actions">
-                            <button class="action-btn download-btn" onclick="downloadFile(${file.id}, '${(file.Filename || file.filename || 'unknown').replace(/'/g, "\\'")}', '${String(file.Filesize || '').replace(/'/g, "\\'")}', event)">
+                            <button class="action-btn download-btn" onclick="downloadFile(${file.id}, '${file.Filename.replace(/'/g, "\\'")}', '${String(file.Filesize || '').replace(/'/g, "\\'")}', event)">
                                 <i class="fas fa-download"></i> Download
                             </button>
-                            <button class="action-btn link-btn" onclick="generateDownloadLink(${file.id}, '${(file.Filename || file.filename || 'unknown').replace(/'/g, "\\'")}', event)">
+                            <button class="action-btn link-btn" onclick="generateDownloadLink(${file.id}, '${file.Filename.replace(/'/g, "\\'")}', event)">
                                 <i class="fas fa-link"></i> Share
                             </button>
-                            <button class="action-btn delete-btn" onclick="deleteFile(${file.id}, '${(file.Filename || file.filename || 'unknown').replace(/'/g, "\\'")}', event)">
+                            <button class="action-btn delete-btn" onclick="deleteFile(${file.id}, '${file.Filename.replace(/'/g, "\\'")}', event)">
                                 <i class="fas fa-trash"></i> Delete
                             </button>
                         </div>
@@ -2586,7 +2586,6 @@ function checkQuotaAndToggleUpload(storagePercentage) {
         }
 
         function getFileIcon(filename) {
-            if (!filename) return 'fas fa-file';
             const extension = filename.split('.').pop().toLowerCase();
             const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
             const videoExtensions = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
