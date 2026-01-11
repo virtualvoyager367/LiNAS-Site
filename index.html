@@ -1533,7 +1533,7 @@
                     
                     const displaySize = formatBytes(totalBytes);
                     const totalStorageBytes = (user && user.permitted_space) ? user.permitted_space : 100 * 1024 * 1024 * 1024; // Use real quota or fallback to 100GB
-                    const storagePercentage = totalStorageBytes > 0 ? Math.min(100, (totalBytes / totalStorageBytes) * 100).toFixed(2) : 0;
+                    const storagePercentage = totalStorageBytes > 0 ? Math.min(100, (totalBytes / totalStorageBytes) * 100) : 0;
                     
                     if (sizeElement) sizeElement.textContent = displaySize;
                     if (usageElement) usageElement.textContent = `${storagePercentage.toFixed(1)}%`;
