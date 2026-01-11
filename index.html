@@ -1639,12 +1639,14 @@
                     return;
                 }
 
-                filesList.innerHTML = files.map(file => `
+                filesList.innerHTML = files.map(file => {
+                    const filename = file.Filename || file.filename || 'unknown';
+                    return `
                     <div class="file-item">
                         <div class="file-info">
-                            <span class="file-icon">${getFileIcon(file.Filename)}</span>
+                            <span class="file-icon">${getFileIcon(filename)}</span>
                             <div class="file-details">
-                                <div class="file-name" title="${file.Filename}">${file.Filename}</div>
+                                <div class="file-name" title="${filename}">${filename}</div>
                                 <div class="file-meta">
                                     <span>${formatFileSize(file.Filesize)}</span>
                                     <span>•</span>
@@ -1672,7 +1674,7 @@
                             </button>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
             } catch (error) {
                 filesList.innerHTML = `
                     <div style="padding: 20px; text-align: center; color: #e74c3c;">
@@ -2408,19 +2410,6 @@ function checkQuotaAndToggleUpload(storagePercentage) {
                 // Only handle the first file (single file upload)
                 if (files.length > 0) {
                     const singleFile = files[0];
-                    console.log('Processing file:', singleFile.name);
-                    
-                    // Clear the file input and set the new file
-                    fileInput.value = '';
-                    
-                    // Create a new data transfer object to simulate file selection
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(singleFile);
-                    fileInput.files = dataTransfer.files;
-                    
-                    console.log('File set to input, triggering handleFileSelect');
-                    
-                    // Trigger the file selection handler
                     console.log('About to call handleFileSelect, function exists:', typeof handleFileSelect);
                     handleFileSelect({ target: fileInput });
                 } else {
