@@ -225,10 +225,11 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 9999;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 99999;
             justify-content: center;
             align-items: center;
+            backdrop-filter: blur(2px);
         }
         
         .modal .login-container {
@@ -2219,12 +2220,6 @@
                 
                 const lastUpdated = document.getElementById('lastUpdated');
 
-                if (dashboardStoragePercent) {
-                    dashboardStoragePercent.textContent = `${storagePercentage}%`;
-                }
-                if (dashboardStorageUsed) {
-                    dashboardStorageUsed.textContent = displaySize;
-                }
                 // Update dashboard stat cards after variables are calculated
                 console.log('updateStatistics: About to update dashboard cards');
                 console.log('updateStatistics: Elements found:', {
