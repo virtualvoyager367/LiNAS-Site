@@ -1595,7 +1595,29 @@
 
                 const data = await response.json();
                 // The API returns an array with one object containing files array and user info
-                const userData = data[0];
+                console.log('getAllFiles: Raw API response:', data);
+                console.log('getAllFiles: Response type:', typeof data);
+                console.log('getAllFiles: Response structure:', JSON.stringify(data, null, 2));
+                
+                let userData = null;
+                let files = [];
+                
+                if (Array.isArray(data)) {
+                    // Response is an array of files
+                    files = data;
+                    console.log('getAllFiles: Using array response directly');
+                } else if (data && typeof data === 'object') {
+                    // Response is an object with files and user
+                    files = data.files || [];
+                    userData = data.user || null;
+                    console.log('getAllFiles: Using object response with files:', files.length);
+                } else {
+                    // Unexpected response format
+                    console.error('getAllFiles: Unexpected response format:', data);
+                    files = [];
+                    userData = null;
+                }
+                
                 if (!userData) {
                     return { files: [], user: null };
                 }
