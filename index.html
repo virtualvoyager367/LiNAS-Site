@@ -898,10 +898,59 @@
                     </div>
                     <div class="content-body">
                         <div class="upload-area" id="uploadContainer">
-                            <input type="file" id="fileInput">
-                            <button id="selectFilesBtn" class="upload-btn">
-                                <i class="fas fa-upload"></i> Select Files
-                            </button>
+                            <div style="display: flex; gap: 20px; align-items: stretch;">
+                                <!-- Upload Area -->
+                                <div style="flex: 1; text-align: center; padding: 40px 20px; border: 2px dashed #ddd; border-radius: 8px; background: #f9f9f9; transition: all 0.3s ease;" onmouseover="this.style.borderColor='#007bff'; this.style.background='#f0f8ff';" onmouseout="this.style.borderColor='#ddd'; this.style.background='#f9f9f9';">
+                                    <div style="font-size: 48px; color: #007bff; margin-bottom: 15px;">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 8px;">
+                                        Upload Your Files
+                                    </div>
+                                    <div style="font-size: 14px; color: #666; margin-bottom: 20px; line-height: 1.4;">
+                                        Drag and drop files here or click to browse<br>
+                                        <span style="font-size: 12px; color: #999;">Maximum file size: 100MB • Supported formats: All</span>
+                                    </div>
+                                    <input type="file" id="fileInput" style="display: none;">
+                                    <button id="selectFilesBtn" class="upload-btn" style="background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; transition: background 0.3s ease;" onmouseover="this.style.background='#0056b3';" onmouseout="this.style.background='#007bff';">
+                                        <i class="fas fa-folder-open"></i> Choose Files
+                                    </button>
+                                </div>
+                                
+                                <!-- Statistics Panel -->
+                                <div style="width: 250px; background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px;">
+                                    <div style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 15px; display: flex; align-items: center;">
+                                        <i class="fas fa-chart-pie" style="margin-right: 8px; color: #007bff;"></i>
+                                        Storage Statistics
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                                            <span style="font-size: 13px; color: #666;">Total Files</span>
+                                            <span id="uploadStatsFiles" style="font-size: 14px; font-weight: 600; color: #333;">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                                            <span style="font-size: 13px; color: #666;">Storage Used</span>
+                                            <span id="uploadStatsSize" style="font-size: 14px; font-weight: 600; color: #333;">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                                            <span style="font-size: 13px; color: #666;">Usage</span>
+                                            <span id="uploadStatsUsage" style="font-size: 14px; font-weight: 600; color: #333;">-</span>
+                                        </div>
+                                        <div style="margin-top: 12px;">
+                                            <div style="font-size: 12px; color: #666; margin-bottom: 4px;">Storage Progress</div>
+                                            <div style="background: #f0f0f0; border-radius: 4px; height: 8px; overflow: hidden;">
+                                                <div id="uploadStatsProgress" style="background: #007bff; height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+                                            </div>
+                                        </div>
+                                        <div style="margin-top: 12px; padding: 10px; background: #f8f9fa; border-radius: 4px; font-size: 12px; color: #666; line-height: 1.4;">
+                                            <div style="font-weight: 600; margin-bottom: 4px;">Quick Tips:</div>
+                                            • Single file uploads only<br>
+                                            • Files are automatically organized<br>
+                                            • Share links expire after 7 days
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div id="uploadProgress" style="display: none; margin-top: 10px;">
                                 <div class="progress-container">
                                     <div class="progress-bar">
@@ -2281,7 +2330,7 @@
                                         <i class="fas fa-chart-pie" style="margin-right: 8px; color: #007bff;"></i>
                                         Storage Statistics
                                     </div>
-                                    <div style="space-y: 12px;">
+                                    <div style="display: flex; flex-direction: column; gap: 12px;">
                                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
                                             <span style="font-size: 13px; color: #666;">Total Files</span>
                                             <span id="uploadStatsFiles" style="font-size: 14px; font-weight: 600; color: #333;">-</span>
@@ -2462,6 +2511,9 @@
             }
             // Check quota on initial page load
             checkQuotaStatus();
+            
+            // Populate upload area statistics on initial load
+            updateUploadStats();
         });
     </script>
 </body>
