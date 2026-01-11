@@ -1776,6 +1776,54 @@
             alert('Link copied to clipboard!');
         }
 
+        function showDeleteModal(filename, onConfirm) {
+            // Create modal overlay
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(2px); background: rgba(0, 0, 0, 0.5);';
+            
+            // Create modal content
+            const modal = document.createElement('div');
+            modal.style.cssText = 'background: #3a3a3a; border-radius: 10px; padding: 30px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5);';
+            
+            modal.innerHTML = `
+                <h2 style="color: white; margin-bottom: 20px;">Confirm Deletion</h2>
+                <p style="color: #ccc; margin-bottom: 25px;">Are you sure you want to delete "${filename}"? This action cannot be undone.</p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button id="deleteConfirmBtn" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px;">Delete</button>
+                    <button id="deleteCancelBtn" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px;">Cancel</button>
+                </div>
+            `;
+            
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+            
+            // Add event listeners
+            document.getElementById('deleteConfirmBtn').onclick = () => {
+                document.body.removeChild(overlay);
+                onConfirm();
+            };
+            
+            document.getElementById('deleteCancelBtn').onclick = () => {
+                document.body.removeChild(overlay);
+            };
+            
+            // Close on overlay click
+            overlay.onclick = (e) => {
+                if (e.target === overlay) {
+                    document.body.removeChild(overlay);
+                }
+            };
+            
+            // Close on Escape key
+            const handleEscape = (e) => {
+                if (e.key === 'Escape') {
+                    document.body.removeChild(overlay);
+                    document.removeEventListener('keydown', handleEscape);
+                }
+            };
+            document.addEventListener('keydown', handleEscape);
+        }
+
         function showLinkModal(link) {
             console.log('Creating modal with link:', link);
             
@@ -1850,8 +1898,8 @@
             const deleteBtn = event ? event.target.closest('.delete-btn') : null;
             let originalBtnText = '';
 
-            // Show confirmation using browser confirm
-            if (confirm(`Are you sure you want to delete "${filename}"? This action cannot be undone.`)) {
+            // Show confirmation using custom modal
+            showDeleteModal(filename, async () => {
                 try {
                     const currentUser = getCookie('ada_current_user');
                     const loginToken = getCookie('ada_login_token');
@@ -1904,7 +1952,7 @@
                         deleteBtn.disabled = false;
                     }
                 }
-            }
+            });
         }
 
         async function updateStatistics() {
