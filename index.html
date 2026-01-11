@@ -2416,6 +2416,10 @@ function checkQuotaAndToggleUpload(storagePercentage) {
             
             function handleDrop(e) {
                 console.log('handleDrop triggered');
+                e.preventDefault();
+                e.stopPropagation();
+                unhighlight();
+                
                 const dt = e.dataTransfer;
                 const files = dt.files;
                 
@@ -2423,9 +2427,8 @@ function checkQuotaAndToggleUpload(storagePercentage) {
                 
                 // Only handle the first file (single file upload)
                 if (files.length > 0) {
-                    const singleFile = files[0];
                     console.log('About to call handleFileSelect, function exists:', typeof handleFileSelect);
-                    handleFileSelect({ target: fileInput });
+                    handleFileSelect({ dataTransfer: dt });
                 } else {
                     console.log('No files found in drop');
                 }
