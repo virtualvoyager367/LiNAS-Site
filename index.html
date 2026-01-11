@@ -2518,62 +2518,6 @@
             }
         }
 
-        // Function to update upload area statistics
-        async function updateUploadStats() {
-            try {
-                const result = await getAllFiles();
-                const files = result.files;
-                const user = result.user;
-                
-                // Update file count
-                const filesElement = document.getElementById('uploadStatsFiles');
-                if (filesElement) {
-                    filesElement.textContent = files.length;
-                }
-                
-                // Update storage size and usage
-                const sizeElement = document.getElementById('uploadStatsSize');
-                const usageElement = document.getElementById('uploadStatsUsage');
-                const progressElement = document.getElementById('uploadStatsProgress');
-                
-                if (user && user.used_space && user.permitted_space) {
-                    // Use API data
-                    const displaySize = formatBytes(user.used_space);
-                    const storagePercentage = Math.min(100, user.usage);
-                    
-                    if (sizeElement) sizeElement.textContent = displaySize;
-                    if (usageElement) usageElement.textContent = `${storagePercentage.toFixed(1)}%`;
-                    if (progressElement) progressElement.style.width = `${storagePercentage}%`;
-                } else {
-                    // Fallback: calculate from files
-                    let totalBytes = 0;
-                    files.forEach(file => {
-                        const sizeStr = String(file.Filesize || '0B').trim().toUpperCase();
-                        const sizeMatch = sizeStr.match(/^([\d.]+)\s*([KMGTP]?B?|B)$/);
-                        if (sizeMatch) {
-                            const sizeValue = parseFloat(sizeMatch[1]);
-                            const unit = sizeMatch[2].charAt(0).toUpperCase() || 'B';
-                            const multiplier = {
-                                'B': 1, 'K': 1024, 'M': 1024 * 1024, 'G': 1024 * 1024 * 1024,
-                                'T': 1024 * 1024 * 1024 * 1024, 'P': 1024 * 1024 * 1024 * 1024 * 1024
-                            }[unit] || 1;
-                            totalBytes += sizeValue * multiplier;
-                        }
-                    });
-                    
-                    const displaySize = formatBytes(totalBytes);
-                    const totalStorageGB = 100 * 1024 * 1024 * 1024; // 100GB
-                    const storagePercentage = Math.min(100, (totalBytes / totalStorageGB) * 100);
-                    
-                    if (sizeElement) sizeElement.textContent = displaySize;
-                    if (usageElement) usageElement.textContent = `${storagePercentage.toFixed(1)}%`;
-                    if (progressElement) progressElement.style.width = `${storagePercentage}%`;
-                }
-            } catch (error) {
-                console.error('Error updating upload stats:', error);
-            }
-        }
-
         // Drag and drop setup function
         function setupDragAndDrop() {
             const uploadContainer = document.getElementById('uploadContainer');
@@ -2669,6 +2613,62 @@
             }
         }
 
+        // Function to update upload area statistics
+        async function updateUploadStats() {
+            try {
+                const result = await getAllFiles();
+                const files = result.files;
+                const user = result.user;
+                
+                // Update file count
+                const filesElement = document.getElementById('uploadStatsFiles');
+                if (filesElement) {
+                    filesElement.textContent = files.length;
+                }
+                
+                // Update storage size and usage
+                const sizeElement = document.getElementById('uploadStatsSize');
+                const usageElement = document.getElementById('uploadStatsUsage');
+                const progressElement = document.getElementById('uploadStatsProgress');
+                
+                if (user && user.used_space && user.permitted_space) {
+                    // Use API data
+                    const displaySize = formatBytes(user.used_space);
+                    const storagePercentage = Math.min(100, user.usage);
+                    
+                    if (sizeElement) sizeElement.textContent = displaySize;
+                    if (usageElement) usageElement.textContent = `${storagePercentage.toFixed(1)}%`;
+                    if (progressElement) progressElement.style.width = `${storagePercentage}%`;
+                } else {
+                    // Fallback: calculate from files
+                    let totalBytes = 0;
+                    files.forEach(file => {
+                        const sizeStr = String(file.Filesize || '0B').trim().toUpperCase();
+                        const sizeMatch = sizeStr.match(/^([\d.]+)\s*([KMGTP]?B?|B)$/);
+                        if (sizeMatch) {
+                            const sizeValue = parseFloat(sizeMatch[1]);
+                            const unit = sizeMatch[2].charAt(0).toUpperCase() || 'B';
+                            const multiplier = {
+                                'B': 1, 'K': 1024, 'M': 1024 * 1024, 'G': 1024 * 1024 * 1024,
+                                'T': 1024 * 1024 * 1024 * 1024, 'P': 1024 * 1024 * 1024 * 1024 * 1024
+                            }[unit] || 1;
+                            totalBytes += sizeValue * multiplier;
+                        }
+                    });
+                    
+                    const displaySize = formatBytes(totalBytes);
+                    const totalStorageGB = 100 * 1024 * 1024 * 1024; // 100GB
+                    const storagePercentage = Math.min(100, (totalBytes / totalStorageGB) * 100);
+                    
+                    if (sizeElement) sizeElement.textContent = displaySize;
+                    if (usageElement) usageElement.textContent = `${storagePercentage.toFixed(1)}%`;
+                    if (progressElement) progressElement.style.width = `${storagePercentage}%`;
+                }
+            } catch (error) {
+                console.error('Error updating upload stats:', error);
+            }
+        }
+
         // Dashboard navigation function
         function goToFilesPage() {
             const filesMenuItem = document.querySelector('[data-page="files"]');
@@ -2742,9 +2742,6 @@
             
             // Populate upload area statistics on initial load
             updateUploadStats();
-            
-            // Setup drag and drop on initial load
-            setupDragAndDrop();
         });
     </script>
 </body>
