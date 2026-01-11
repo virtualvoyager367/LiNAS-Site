@@ -1716,7 +1716,6 @@
                 xhr.upload.onprogress = (evt) => {
                     if (!uploadStarted) {
                         uploadStarted = true;
-                        setPrepareProgress(100);
                     }
                     if (evt.lengthComputable) {
                         const pct = (evt.loaded / evt.total) * 100;
@@ -1726,19 +1725,16 @@
 
                 xhr.onload = () => {
                     currentXhr = null;
-                    setPrepareProgress(100);
                     resolve(xhr.responseText);
                 };
 
                 xhr.onerror = () => {
                     currentXhr = null;
-                    setPrepareProgress(100);
                     reject(new Error('Network error during upload'));
                 };
 
                 xhr.onabort = () => {
                     currentXhr = null;
-                    setPrepareProgress(100);
                     const abortErr = new Error('Upload cancelled');
                     abortErr.name = 'AbortError';
                     reject(abortErr);
