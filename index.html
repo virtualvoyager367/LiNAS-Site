@@ -1749,6 +1749,13 @@
         }
 
         // Global helper functions - accessible from anywhere
+        function setPrepareProgress(pct) {
+            const loadProgress = document.getElementById('loadProgress');
+            const loadStatus = document.getElementById('loadStatus');
+            if (loadProgress) loadProgress.style.width = `${pct}%`;
+            if (loadStatus) loadStatus.textContent = `Preparing: ${Math.round(pct)}%`;
+        }
+
         function showUploadProgress() {
             const uploadProgress = document.getElementById('uploadProgress');
             if (uploadProgress) uploadProgress.style.display = 'block';
