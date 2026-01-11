@@ -2136,13 +2136,15 @@
                 console.log('updateStatistics: Files array type:', Object.prototype.toString.call(files));
                 
                 // Check if files actually exist and have content
-                const hasValidFiles = files.length > 0 && files.some(file => 
-                    file && (file.filename || file.name || file.id)
+                const validFiles = files.filter(file => 
+                    file && (file.Filename || file.filename || file.name || file.id)
                 );
+                
+                const hasValidFiles = validFiles.length > 0;
                 
                 if (hasValidFiles) {
                     // Valid files with content
-                    totalFiles = files.length;
+                    totalFiles = validFiles.length;
                     console.log('updateStatistics: Found valid files:', totalFiles);
                 } else {
                     // No valid files
@@ -2157,7 +2159,7 @@
 
                 // Count recent uploads (within last 7 days) - only if files exist
                 if (totalFiles > 0) {
-                    files.forEach(file => {
+                    validFiles.forEach(file => {
                         const uploadDate = new Date(file.createdAt || file.updatedAt);
                         if (uploadDate >= oneWeekAgo) {
                             recentUploads++;
