@@ -1690,6 +1690,40 @@
             setupDragAndDrop();
         })();
 
+        // Global file selection handler - accessible from anywhere
+        async function handleFileSelect(e) {
+            const files = Array.from(e.target.files || []);
+            if (files.length === 0) return;
+
+            if (isUploading) {
+                alert('Upload already in progress. Please wait for current upload to complete.');
+                return;
+            }
+
+            isUploading = true;
+            showUploadProgress();
+            setFileInfo(`Selected: ${files[0].name}`, '#007bff');
+
+            try {
+                for (const file of files) {
+                    await uploadFileXhr(file);
+                }
+                hideUploadProgressNow();
+                setFileInfo('Upload complete!', '#4caf50');
+            } catch (error) {
+                console.error('Error during file upload:', error);
+                if (error && error.name === 'AbortError') {
+                    setFileInfo('Upload cancelled', '#666');
+                } else {
+                    setFileInfo(`Upload failed: ${error.message}`, 'red');
+                }
+                hideUploadProgressNow();
+            } finally {
+                isUploading = false;
+                if (fileInput) fileInput.value = '';
+            }
+        }
+
         function formatBytes(bytes) {
             const b = Number(bytes) || 0;
             if (b <= 0) return '0 B';
