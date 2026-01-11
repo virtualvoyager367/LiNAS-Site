@@ -1787,8 +1787,8 @@
                     throw new Error('No link returned from server');
                 }
 
-                // Show download link in a simple alert
-                alert(`Download link: ${link}`);
+                // Show modal popup with the download link
+                showLinkModal(link);
             } catch (error) {
                 console.error('Error generating download link:', error);
                 alert('Failed to generate download link: ' + (error.message || 'Unknown error'));
@@ -1805,6 +1805,76 @@
             linkInput.select();
             document.execCommand('copy');
             alert('Link copied to clipboard!');
+        }
+
+        function showLinkModal(link) {
+            console.log('Creating modal with link:', link);
+            
+            // Create modal overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'link-modal-overlay';
+            
+            // Create modal content
+            const modal = document.createElement('div');
+            modal.className = 'link-modal';
+            modal.style.cssText = 'background: white !important; border-radius: 10px !important; padding: 20px !important; max-width: 500px !important; width: 500px !important; height: auto !important; max-height: 300px !important; position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.3) !important; display: block !important; z-index: 999998 !important;';
+            console.log('Modal elements created');
+            
+            // Create close button
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'modal-close';
+            closeBtn.innerHTML = '×';
+            closeBtn.onclick = () => {
+                document.body.removeChild(overlay);
+            };
+            
+            // Create title
+            const title = document.createElement('div');
+            title.className = 'modal-title';
+            title.textContent = 'Download Link';
+            
+            // Create link container
+            const linkContainer = document.createElement('div');
+            linkContainer.className = 'link-container';
+            
+            // Create link input
+            const linkInput = document.createElement('input');
+            linkInput.type = 'text';
+            linkInput.value = link;
+            linkInput.id = `link-input-${Date.now()}`;
+            linkInput.readOnly = true;
+            
+            // Create copy button
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'copy-button';
+            copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+            copyBtn.onclick = () => copyLink(linkInput.id);
+            
+            // Assemble modal
+            linkContainer.appendChild(linkInput);
+            linkContainer.appendChild(copyBtn);
+            modal.appendChild(title);
+            modal.appendChild(linkContainer);
+            overlay.appendChild(modal);
+            
+            // Add to page and show
+            document.body.appendChild(overlay);
+            
+            // Close on overlay click
+            overlay.onclick = (e) => {
+                if (e.target === overlay) {
+                    document.body.removeChild(overlay);
+                }
+            };
+            
+            // Close on Escape key
+            const handleEscape = (e) => {
+                if (e.key === 'Escape') {
+                    document.body.removeChild(overlay);
+                    document.removeEventListener('keydown', handleEscape);
+                }
+            };
+            document.addEventListener('keydown', handleEscape);
         }
 
         async function deleteFile(fileId, filename, event) {
