@@ -2592,6 +2592,7 @@
                     console.log('File set to input, triggering handleFileSelect');
                     
                     // Trigger the file selection handler
+                    console.log('About to call handleFileSelect, function exists:', typeof handleFileSelect);
                     handleFileSelect({ target: fileInput });
                 } else {
                     console.log('No files found in drop');
