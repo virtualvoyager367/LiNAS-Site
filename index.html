@@ -2206,18 +2206,37 @@
                     dashboardStorageUsed.textContent = displaySize;
                 }
                 // Update dashboard stat cards after variables are calculated
+                console.log('updateStatistics: About to update dashboard cards');
+                console.log('updateStatistics: Elements found:', {
+                    totalFiles: !!totalFilesElement,
+                    totalSize: !!totalSizeElement,
+                    recentUploads: !!recentUploadsElement,
+                    storageUsed: !!storageUsedElement
+                });
+                
                 if (totalFilesElement) {
                     console.log('Updating total files:', totalFiles);
                     totalFilesElement.textContent = totalFiles;
+                } else {
+                    console.error('totalFilesElement not found!');
                 }
                 if (totalSizeElement) {
+                    console.log('Updating total size:', displaySize);
                     totalSizeElement.textContent = displaySize;
+                } else {
+                    console.error('totalSizeElement not found!');
                 }
                 if (recentUploadsElement) {
+                    console.log('Updating recent uploads:', recentUploads);
                     recentUploadsElement.textContent = recentUploads;
+                } else {
+                    console.error('recentUploadsElement not found!');
                 }
                 if (storageUsedElement) {
+                    console.log('Updating storage used:', storagePercentage);
                     storageUsedElement.textContent = `${storagePercentage}%`;
+                } else {
+                    console.error('storageUsedElement not found!');
                 }
 
                 if (dashboardStoragePercent) {
