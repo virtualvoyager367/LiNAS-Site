@@ -1657,13 +1657,13 @@
                             </div>
                         </div>
                         <div class="file-actions">
-                            <button class="action-btn download-btn" onclick="downloadFile(${file.id}, '${file.Filename.replace(/'/g, "\\'")}', '${String(file.Filesize || '').replace(/'/g, "\\'")}', event)">
+                            <button class="action-btn download-btn" onclick="downloadFile(${file.id}, '${filename.replace(/'/g, "\\'")}', '${String(filesize || '').replace(/'/g, "\\'")}', event)">
                                 <i class="fas fa-download"></i> Download
                             </button>
-                            <button class="action-btn link-btn" onclick="generateDownloadLink(${file.id}, '${file.Filename.replace(/'/g, "\\'")}', event)">
+                            <button class="action-btn link-btn" onclick="generateDownloadLink(${file.id}, '${filename.replace(/'/g, "\\'")}', event)">
                                 <i class="fas fa-link"></i> Share
                             </button>
-                            <button class="action-btn delete-btn" onclick="deleteFile(${file.id}, '${file.Filename.replace(/'/g, "\\'")}', event)">
+                            <button class="action-btn delete-btn" onclick="deleteFile(${file.id}, '${filename.replace(/'/g, "\\'")}', event)">
                                 <i class="fas fa-trash"></i> Delete
                             </button>
                         </div>
