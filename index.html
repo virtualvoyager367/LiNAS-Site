@@ -2114,13 +2114,28 @@
                 console.log('updateStatistics: Files received:', files);
                 console.log('updateStatistics: User data:', user);
                 
+                // Check if files data is valid and calculate statistics
+                let totalFiles = 0;
+                
                 if (!files || !Array.isArray(files)) {
                     console.error('Invalid files data received');
                     return;
                 }
-
-                // Calculate statistics
-                const totalFiles = files.length;
+                
+                // Handle different empty file scenarios
+                if (files.length === 0) {
+                    // Empty array - no files
+                    totalFiles = 0;
+                    console.log('updateStatistics: No files found');
+                } else if (files.length === 1 && !files[0].hasOwnProperty('filename')) {
+                    // Single empty object {} - no files
+                    totalFiles = 0;
+                    console.log('updateStatistics: Empty file object found');
+                } else {
+                    // Valid files array with actual files
+                    totalFiles = files.length;
+                    console.log('updateStatistics: Found files:', totalFiles);
+                }
                 const now = new Date();
                 const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
                 let recentUploads = 0;
