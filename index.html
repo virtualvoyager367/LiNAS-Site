@@ -1864,6 +1864,10 @@
             title.className = 'modal-title';
             title.textContent = 'Download Link';
             
+            // Assemble modal
+            modal.appendChild(closeBtn);
+            modal.appendChild(title);
+            
             // Create link container
             const linkContainer = document.createElement('div');
             linkContainer.className = 'link-container';
