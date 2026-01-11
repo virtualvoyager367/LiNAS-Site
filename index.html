@@ -2476,6 +2476,59 @@
             }
         }
 
+        // Global upload function - accessible from anywhere
+        function uploadFileXhr(file) {
+            return new Promise((resolve, reject) => {
+                const currentUser = getCookie('ada_current_user');
+                const loginToken = getCookie('ada_login_token');
+
+                if (!currentUser || !loginToken) {
+                    reject(new Error('Please log in to upload files'));
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('user', currentUser);
+                formData.append('token', loginToken);
+
+                const xhr = new XMLHttpRequest();
+                window.currentXhr = xhr;
+
+                xhr.open('POST', 'https://n8n.tail851803.ts.net/webhook/640a0f98-a3b8-4e59-8e5f-2f872beeb194', true);
+                xhr.setRequestHeader('Accept', 'text/html');
+
+                xhr.upload.onprogress = (evt) => {
+                    if (!window.uploadStarted) {
+                        window.uploadStarted = true;
+                    }
+                    if (evt.lengthComputable) {
+                        const pct = (evt.loaded / evt.total) * 100;
+                        setUploadProgress(pct);
+                    }
+                };
+
+                xhr.onload = () => {
+                    window.currentXhr = null;
+                    resolve(xhr.responseText);
+                };
+
+                xhr.onerror = () => {
+                    window.currentXhr = null;
+                    reject(new Error('Network error during upload'));
+                };
+
+                xhr.onabort = () => {
+                    window.currentXhr = null;
+                    const abortErr = new Error('Upload cancelled');
+                    abortErr.name = 'AbortError';
+                    reject(abortErr);
+                };
+
+                xhr.send(formData);
+            });
+        }
+
         // Global helper functions - accessible from anywhere
         function showUploadProgress() {
             const uploadProgress = document.getElementById('uploadProgress');
