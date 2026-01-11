@@ -1482,6 +1482,40 @@
             let currentXhr = null;
             let isUploading = false;
 
+            // File selection handler - accessible to all functions in this IIFE
+            async function handleFileSelect(e) {
+                const files = Array.from(e.target.files || []);
+                if (files.length === 0) return;
+
+                if (isUploading) {
+                    alert('Upload already in progress. Please wait for current upload to complete.');
+                    return;
+                }
+
+                isUploading = true;
+                showUploadProgress();
+                setFileInfo(`Selected: ${files[0].name}`, '#007bff');
+
+                try {
+                    for (const file of files) {
+                        await uploadFileXhr(file);
+                    }
+                    hideUploadProgressNow();
+                    setFileInfo('Upload complete!', '#4caf50');
+                } catch (error) {
+                    console.error('Error during file upload:', error);
+                    if (error && error.name === 'AbortError') {
+                        setFileInfo('Upload cancelled', '#666');
+                    } else {
+                        setFileInfo(`Upload failed: ${error.message}`, 'red');
+                    }
+                    hideUploadProgressNow();
+                } finally {
+                    isUploading = false;
+                    if (fileInput) fileInput.value = '';
+                }
+            }
+
             function setPrepareProgress(pct) {
                 if (loadProgress) loadProgress.style.width = `${pct}%`;
                 if (loadStatus) loadStatus.textContent = `Preparing: ${Math.round(pct)}%`;
@@ -1637,58 +1671,7 @@
                 });
             }
 
-            async function handleFileSelect(e) {
-                const files = Array.from(e.target.files || []);
-                if (files.length === 0) return;
-
-                if (isUploading) {
-                    e.target.value = '';
-                    return;
-                }
-
-                isUploading = true;
-                if (selectFilesBtn) selectFilesBtn.disabled = true;
-
-                try {
-                    for (let idx = 0; idx < files.length; idx++) {
-                        const file = files[idx];
-                        const isLast = idx === files.length - 1;
-                        showUploadProgress();
-                        setFileInfo(`Uploading ${file.name}...`, '#666');
-
-                        await animatePrepare();
-                        setUploadProgress(0);
-
-                        await uploadFileXhr(file);
-                        setFileInfo('Upload successful!', 'green');
-
-                        if (isLast) {
-                            hideUploadProgressSoon();
-                        }
-
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                    }
-
-                    displayFiles();
-                    updateStatistics();
-                    checkQuotaStatus(); // Additional quota check
-                    updateUploadStats(); // Update upload area stats
-                } catch (error) {
-                    console.error('Error during file upload:', error);
-                    if (error && error.name === 'AbortError') {
-                        setFileInfo('Upload cancelled', '#666');
-                        hideUploadProgressNow();
-                    } else {
-                        setFileInfo(`Upload failed: ${error.message}`, 'red');
-                    }
-                } finally {
-                    hideCancel();
-                    if (selectFilesBtn) selectFilesBtn.disabled = false;
-                    isUploading = false;
-                    e.target.value = '';
-                }
-            }
-
+            
             if (selectFilesBtn && fileInput) {
                 selectFilesBtn.addEventListener('click', () => fileInput.click());
             }
