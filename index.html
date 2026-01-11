@@ -2122,15 +2122,23 @@
                     return;
                 }
                 
-                // Handle different empty file scenarios
-                if (files.length === 0) {
-                    // Empty array - no files
-                    totalFiles = 0;
-                    console.log('updateStatistics: No files found');
-                } else {
-                    // Valid files array with actual files (including single files)
+                console.log('updateStatistics: Files array length:', files.length);
+                console.log('updateStatistics: First file content:', files[0]);
+                console.log('updateStatistics: Files array type:', Object.prototype.toString.call(files));
+                
+                // Check if files actually exist and have content
+                const hasValidFiles = files.length > 0 && files.some(file => 
+                    file && (file.filename || file.name || file.id)
+                );
+                
+                if (hasValidFiles) {
+                    // Valid files with content
                     totalFiles = files.length;
-                    console.log('updateStatistics: Found files:', totalFiles);
+                    console.log('updateStatistics: Found valid files:', totalFiles);
+                } else {
+                    // No valid files
+                    totalFiles = 0;
+                    console.log('updateStatistics: No valid files found');
                 }
                 const now = new Date();
                 const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
