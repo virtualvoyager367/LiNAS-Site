@@ -1712,10 +1712,9 @@
                 xhr.open('POST', 'https://n8n.tail851803.ts.net/webhook/640a0f98-a3b8-4e59-8e5f-2f872beeb194', true);
                 xhr.setRequestHeader('Accept', 'text/html');
 
-                let uploadStarted = false;
                 xhr.upload.onprogress = (evt) => {
-                    if (!uploadStarted) {
-                        uploadStarted = true;
+                    if (!window.uploadStarted) {
+                        window.uploadStarted = true;
                     }
                     if (evt.lengthComputable) {
                         const pct = (evt.loaded / evt.total) * 100;
