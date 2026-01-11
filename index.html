@@ -1690,6 +1690,38 @@
             setupDragAndDrop();
         })();
 
+        // Global helper functions - accessible from anywhere
+        function showUploadProgress() {
+            const uploadProgress = document.getElementById('uploadProgress');
+            if (uploadProgress) uploadProgress.style.display = 'block';
+        }
+
+        function hideUploadProgressNow() {
+            const uploadProgress = document.getElementById('uploadProgress');
+            if (uploadProgress) uploadProgress.style.display = 'none';
+        }
+
+        function hideUploadProgressSoon() {
+            setTimeout(hideUploadProgressNow, 1000);
+        }
+
+        function setFileInfo(text, color) {
+            const fileInfo = document.getElementById('fileInfo');
+            if (!fileInfo) return;
+            fileInfo.textContent = text;
+            fileInfo.style.color = color || '#666';
+        }
+
+        function hideCancel() {
+            const cancelUploadBtn = document.getElementById('cancelUpload');
+            if (cancelUploadBtn) cancelUploadBtn.style.display = 'none';
+        }
+
+        function showCancel() {
+            const cancelUploadBtn = document.getElementById('cancelUpload');
+            if (cancelUploadBtn) cancelUploadBtn.style.display = 'inline-block';
+        }
+
         // Global file selection handler - accessible from anywhere
         async function handleFileSelect(e) {
             const files = Array.from(e.target.files || []);
