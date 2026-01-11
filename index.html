@@ -1489,310 +1489,68 @@
         // Setup drag and drop functionality
         setupDragAndDrop();
 
-        function hideUploadProgressSoon() {
-            setTimeout(() => {
-                    if (uploadProgressBar) uploadProgressBar.classList.remove('is-active');
-                }, 650);
-            }
-
-            function hideUploadProgressNow() {
-                if (uploadProgress) uploadProgress.style.display = 'none';
-                if (loadProgress) loadProgress.classList.remove('is-active');
-                if (uploadProgressBar) uploadProgressBar.classList.remove('is-active');
-            }
-
-            function hideCancel() {
-                if (cancelUploadBtn) cancelUploadBtn.style.display = 'none';
-            }
-
-            function parseIframeHtmlResult(responseText) {
-                const tempIframe = document.createElement('iframe');
-                tempIframe.style.display = 'none';
-                document.body.appendChild(tempIframe);
-
-                const doc = tempIframe.contentDocument || tempIframe.contentWindow.document;
-                doc.open();
-                doc.write(responseText);
-                doc.close();
-
-                const bodyText = (doc.body && doc.body.textContent) ? doc.body.textContent : '';
-                const success = bodyText.toLowerCase().includes('success');
-                document.body.removeChild(tempIframe);
-                return { success, bodyText };
-            }
-
-            function animatePrepare() {
-                return new Promise(resolve => {
-                    const start = performance.now();
-                    const duration = 450;
-
-                    function easeInOutCubic(t) {
-                        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-                    }
-
-                    function tick(now) {
-                        const raw = Math.min(1, (now - start) / duration);
-                        const eased = easeInOutCubic(raw);
-                        setPrepareProgress(eased * 100);
-                        if (raw < 1) {
-                            requestAnimationFrame(tick);
-                        } else {
-                            resolve();
-                        }
-                    }
-
-                    requestAnimationFrame(tick);
-                });
-            }
-
-            function uploadFileXhr(file) {
-                return new Promise((resolve, reject) => {
-                    const currentUser = getCookie('ada_current_user');
-                    const loginToken = getCookie('ada_login_token');
-
-                    if (!currentUser || !loginToken) {
-                        reject(new Error('Please log in to upload files'));
-                        return;
-                    }
-
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    formData.append('user', currentUser);
-                    formData.append('token', loginToken);
-
-                    const xhr = new XMLHttpRequest();
-                    currentXhr = xhr;
-
-                    xhr.open('POST', 'https://n8n.tail851803.ts.net/webhook/640a0f98-a3b8-4e59-8e5f-2f872beeb194', true);
-                    xhr.setRequestHeader('Accept', 'text/html');
-
-                    let window.uploadStarted = false;
-                    xhr.upload.onprogress = (evt) => {
-                        if (!window.uploadStarted) {
-                            window.uploadStarted = true;
-                        }
-                        setPrepareProgress(100);
-                        if (evt.lengthComputable) {
-                            const pct = (evt.loaded / evt.total) * 100;
-                            setUploadProgress(pct);
-                        }
-                    };
-
-                    xhr.onload = () => {
-                        currentXhr = null;
-                        setPrepareProgress(100);
-                        if (xhr.status < 200 || xhr.status >= 300) {
-                            reject(new Error(`HTTP error! status: ${xhr.status}`));
-                            return;
-                        }
-
-                        try {
-                            const { success, bodyText } = parseIframeHtmlResult(xhr.responseText || '');
-                            if (success) {
-                                setUploadProgress(100);
-                                resolve();
-                            } else {
-                                reject(new Error('Upload failed: ' + (bodyText || 'Unknown error')));
-                            }
-                        } catch (err) {
-                            reject(err);
-                        }
-                    };
-
-                    xhr.onerror = () => {
-                        currentXhr = null;
-                        setPrepareProgress(100);
-                        reject(new Error('Network error during upload'));
-                    };
-
-                    xhr.onabort = () => {
-                        currentXhr = null;
-                        setPrepareProgress(100);
-                        const abortErr = new Error('Upload cancelled');
-                        abortErr.name = 'AbortError';
-                        reject(abortErr);
-                    };
-
-                    xhr.send(formData);
-                });
-            }
-
-            
-            if (selectFilesBtn && fileInput) {
-                selectFilesBtn.addEventListener('click', () => fileInput.click());
-            }
-
-            if (fileInput) {
-                fileInput.addEventListener('change', handleFileSelect);
-            }
-
-            if (cancelUploadBtn) {
-                cancelUploadBtn.addEventListener('click', () => {
-                    if (currentXhr) currentXhr.abort();
-                });
-            }
-            
-            // Setup drag and drop functionality
-            setupDragAndDrop();
-        })();
-
-        // Global upload function - accessible from anywhere
-        function uploadFileXhr(file) {
-            return new Promise((resolve, reject) => {
-                const currentUser = getCookie('ada_current_user');
-                const loginToken = getCookie('ada_login_token');
-
-                if (!currentUser || !loginToken) {
-                    reject(new Error('Please log in to upload files'));
-                    return;
-                }
-
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('user', currentUser);
-                formData.append('token', loginToken);
-
-                const xhr = new XMLHttpRequest();
-                currentXhr = xhr;
-
-                xhr.open('POST', 'https://n8n.tail851803.ts.net/webhook/640a0f98-a3b8-4e59-8e5f-2f872beeb194', true);
-                xhr.setRequestHeader('Accept', 'text/html');
-
-                xhr.upload.onprogress = (evt) => {
-                    if (!window.uploadStarted) {
-                        window.uploadStarted = true;
-                    }
-                    if (evt.lengthComputable) {
-                        const pct = (evt.loaded / evt.total) * 100;
-                        setUploadProgress(pct);
-                    }
-                };
-
-                xhr.onload = () => {
-                    currentXhr = null;
-                    resolve(xhr.responseText);
-                };
-
-                xhr.onerror = () => {
-                    currentXhr = null;
-                    reject(new Error('Network error during upload'));
-                };
-
-                xhr.onabort = () => {
-                    currentXhr = null;
-                    const abortErr = new Error('Upload cancelled');
-                    abortErr.name = 'AbortError';
-                    reject(abortErr);
-                };
-
-                xhr.send(formData);
-            });
-        }
-
-        // Global helper functions - accessible from anywhere
-        function setPrepareProgress(pct) {
-            const loadProgress = document.getElementById('loadProgress');
-            const loadStatus = document.getElementById('loadStatus');
-            if (loadProgress) loadProgress.style.width = `${pct}%`;
-            if (loadStatus) loadStatus.textContent = `Preparing: ${Math.round(pct)}%`;
-        }
-
-        function showUploadProgress() {
-            const uploadProgress = document.getElementById('uploadProgress');
-            if (uploadProgress) uploadProgress.style.display = 'block';
-        }
-
-        function hideUploadProgressNow() {
-            const uploadProgress = document.getElementById('uploadProgress');
-            if (uploadProgress) uploadProgress.style.display = 'none';
-        }
-
-        function hideUploadProgressSoon() {
-            setTimeout(hideUploadProgressNow, 1000);
-        }
-
-        function setFileInfo(text, color) {
-            const fileInfo = document.getElementById('fileInfo');
-            if (!fileInfo) return;
-            fileInfo.textContent = text;
-            fileInfo.style.color = color || '#666';
-        }
-
-        function hideCancel() {
-            const cancelUploadBtn = document.getElementById('cancelUpload');
-            if (cancelUploadBtn) cancelUploadBtn.style.display = 'none';
-        }
-
-        function showCancel() {
-            const cancelUploadBtn = document.getElementById('cancelUpload');
-            if (cancelUploadBtn) cancelUploadBtn.style.display = 'inline-block';
-        }
-
-        // Global file selection handler - accessible from anywhere
-        async function handleFileSelect(e) {
-            const files = Array.from(e.dataTransfer ? e.dataTransfer.files : e.target.files || []);
-            if (files.length === 0) return;
-
-            if (window.isUploading) {
-                alert('Upload already in progress. Please wait for current upload to complete.');
-                return;
-            }
-
-            window.isUploading = true;
-            showUploadProgress();
-            setFileInfo(`Selected: ${files[0].name}`, '#007bff');
-
+        // Function to update upload area statistics
+        async function updateUploadStats() {
             try {
-                for (const file of files) {
-                    await uploadFileXhr(file);
-                }
-                hideUploadProgressNow();
-                setFileInfo('Upload complete!', '#4caf50');
+                const result = await getAllFiles();
+                const files = result.files;
+                const user = result.user;
                 
-                // Auto-refresh files list and statistics after successful upload
-                displayFiles();
-                updateStatistics();
-                checkQuotaStatus();
-                updateUploadStats();
-            } catch (error) {
-                console.error('Error during file upload:', error);
-                if (error && error.name === 'AbortError') {
-                    setFileInfo('Upload cancelled', '#666');
-                } else {
-                    setFileInfo(`Upload failed: ${error.message}`, 'red');
+                // Update file count
+                const filesElement = document.getElementById('uploadStatsFiles');
+                if (filesElement) {
+                    filesElement.textContent = files.length;
                 }
-                hideUploadProgressNow();
-            } finally {
-                window.isUploading = false;
-                if (fileInput) fileInput.value = '';
+                
+                // Update storage size and usage
+                const sizeElement = document.getElementById('uploadStatsSize');
+                const usageElement = document.getElementById('uploadStatsUsage');
+                const progressElement = document.getElementById('uploadStatsProgress');
+                
+                if (user && user.used_space && user.permitted_space) {
+                    // Use API data
+                    const displaySize = formatBytes(user.used_space);
+                    const storagePercentage = Math.min(100, user.usage);
+                    
+                    if (sizeElement) sizeElement.textContent = displaySize;
+                    if (usageElement) usageElement.textContent = `${storagePercentage.toFixed(1)}%`;
+                    if (progressElement) progressElement.style.width = `${storagePercentage}%`;
+                } else {
+                    // Fallback: calculate from files
+                    let totalBytes = 0;
+                    files.forEach(file => {
+                        const sizeStr = String(file.Filesize || '0B').trim().toUpperCase();
+                        const sizeMatch = sizeStr.match(/^([\d.]+)\s*([KMGTP]?B?|B)$/);
+                        if (sizeMatch) {
+                            const sizeValue = parseFloat(sizeMatch[1]);
+                            const unit = sizeMatch[2].charAt(0).toUpperCase() || 'B';
+                            const multiplier = {
+                                'B': 1, 'K': 1024, 'M': 1024 * 1024, 'G': 1024 * 1024 * 1024,
+                                'T': 1024 * 1024 * 1024 * 1024, 'P': 1024 * 1024 * 1024 * 1024 * 1024
+                            }[unit] || 1;
+                            totalBytes += sizeValue * multiplier;
+                        }
+                    });
+                    
+                    const displaySize = formatBytes(totalBytes);
+                    const totalStorageGB = 100 * 1024 * 1024 * 1024; // 100GB
+                    const storagePercentage = Math.min(100, (totalBytes / totalStorageGB) * 100);
+                    
+                    if (sizeElement) sizeElement.textContent = displaySize;
+                    if (usageElement) usageElement.textContent = `${storagePercentage.toFixed(1)}%`;
+                    if (progressElement) progressElement.style.width = `${storagePercentage}%`;
+                }
+            } catch (error) {
+                console.error('Error updating upload stats:', error);
             }
         }
 
-        function formatBytes(bytes) {
-            const b = Number(bytes) || 0;
-            if (b <= 0) return '0 B';
-            const k = 1024;
-            const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-            const i = Math.min(sizes.length - 1, Math.floor(Math.log(b) / Math.log(k)));
-            const value = b / Math.pow(k, i);
-            const rounded = value >= 1000 ? value.toFixed(0) : value >= 10 ? value.toFixed(1) : value.toFixed(2);
-            return `${parseFloat(rounded)} ${sizes[i]}`;
-        }
-
-        function getFileIcon(filename) {
-            const extension = filename.split('.').pop().toLowerCase();
-            const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
-            const videoExtensions = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
-            const audioExtensions = ['mp3', 'wav', 'ogg', 'm4a'];
-            
-            if (imageExtensions.includes(extension)) return '🖼️';
-            if (videoExtensions.includes(extension)) return '🎥';
-            if (audioExtensions.includes(extension)) return '🎵';
-            if (extension === 'pdf') return '📄';
-            if (['doc', 'docx', 'odt', 'pages'].includes(extension)) return '📝';
-            if (['xls', 'xlsx', 'csv', 'ods', 'numbers'].includes(extension)) return '📊';
-            if (['zip', 'rar', '7z', 'tar', 'gz', 'jar'].includes(extension)) return '📦';
-            return '📄';
+        // Dashboard navigation function
+        function goToFilesPage() {
+            const filesMenuItem = document.querySelector('[data-page="files"]');
+            if (filesMenuItem) {
+                filesMenuItem.click();
+            }
         }
 
         function formatDate(dateString) {
